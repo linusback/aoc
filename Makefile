@@ -3,16 +3,16 @@ BINARY_NAME=aoc2024
 
 BENCH=
 
-DAY=1
+YEAR=
+DAY=
 
 run: build
-	./dist/$(BINARY_NAME) $(DAY)
+	./dist/$(BINARY_NAME) $(YEAR) $(DAY)
 
 dev:
-	go run $(ENTRYPOINT_NAME) $(DAY)
+	go run $(ENTRYPOINT_NAME) $(YEAR) $(DAY)
 
 download:
-	
 
 all: tests build
 
