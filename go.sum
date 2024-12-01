@@ -1,0 +1,6 @@
+github.com/JohannesKaufmann/dom v0.1.1-0.20240706125338-ff9f3b772364 h1:TDlO/A2QqlNhdvH+hDnu8cv1rouhfHgLwhGzJeHGgFQ=
+github.com/JohannesKaufmann/dom v0.1.1-0.20240706125338-ff9f3b772364/go.mod h1:U+fBZLZTYiZCOwQUT04V3J4I+0TxyLNnj0R8nBlO4fk=
+github.com/JohannesKaufmann/html-to-markdown/v2 v2.2.1 h1:CTdlXnVjuOA8nh2NRjPx2hZvrSirvqWmgMfYSsgh3+8=
+github.com/JohannesKaufmann/html-to-markdown/v2 v2.2.1/go.mod h1:/4SMA6sya4rFx35o6hHFhK47vKunlKqrw1anAVsihGQ=
+golang.org/x/net v0.31.0 h1:68CPQngjLL0r2AlUKiSxtQFKvzRVbnzLwMUn5SzcLHo=
+golang.org/x/net v0.31.0/go.mod h1:P4fl1q7dY2hnZFxEk4pPSkDHF+QqjitcnDjUQyMM+pM=

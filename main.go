@@ -31,11 +31,17 @@ func main() {
 		}
 	}
 
+	err = aoc.Download(year, day)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var solution1, solution2 string
 	solution1, solution2, err = internal.Solve(year, day)
 	if err != nil {
-		log.Fatalf("error from from solver year %s day %s: %v", year, day, err)
+		log.Fatalln(err)
 	}
+
 	err = send(aoc.Part1, day, solution1)
 	if err != nil {
 		log.Println(err)
