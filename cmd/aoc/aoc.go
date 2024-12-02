@@ -7,6 +7,7 @@ import (
 	"github.com/linusback/aoc2024/pkg/util"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
@@ -27,10 +28,14 @@ func main() {
 	}
 
 	var solution1, solution2 string
+	start := time.Now()
 	solution1, solution2, err = internal.Solve(year, day)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	log.Println("result 1: ", solution1)
+	log.Println("result 2: ", solution2)
+	fmt.Println("Time elapsed:", time.Since(start))
 
 	err = send(aoc.Part1, day, solution1)
 	if err != nil {
