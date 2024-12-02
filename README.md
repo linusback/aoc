@@ -3,7 +3,7 @@ Advent of code 2024
 
 Writen in go.
 
-Uses aoc package to automatically download input and puzzle instructions. 
+Will automatically download input and puzzle instructions. 
 Need session Cookie to work here are 3 ways to provide the value for the session cookie.
 
 1. In an ADVENT_OF_CODE_SESSION environment variable.
