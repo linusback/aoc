@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/linusback/aoc2024/pkg/errorsx"
+	"github.com/linusback/aoc2024/pkg/util"
 	"log"
 	"os"
 	"regexp"
@@ -106,12 +107,23 @@ func generateSolver(moduleName, year string) error {
 }
 
 func generateYearSolve(moduleName, year string, days []string) error {
+	var allExists bool
 	err := createDirIfNotExists(fmt.Sprintf("./internal/year%s", year))
 	if err != nil {
 		return err
 	}
 
-	f, err := os.Create(fmt.Sprintf("./internal/year%s/solve.go", year))
+	filePath := fmt.Sprintf("./internal/year%s/solve.go", year)
+
+	allExists, err = checkDays(moduleName, year, days, filePath)
+	if err != nil {
+		return err
+	}
+	if allExists {
+		return nil
+	}
+
+	f, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
@@ -150,6 +162,44 @@ func generateYearSolve(moduleName, year string, days []string) error {
 	return nil
 }
 
+func checkDays(moduleName, year string, days []string, path string) (allExists bool, err error) {
+	exists, err := util.FileExists(path)
+	if err != nil {
+		return false, err
+	}
+	if !exists {
+		return false, nil
+	}
+
+	fileBytes, err := os.ReadFile(path)
+	if err != nil {
+		return false, err
+	}
+	regexpImport, err := regexp.Compile(fmt.Sprintf(`"%s/internal/year%s/day(\d{1,2})"`, moduleName, year))
+	if err != nil {
+		return false, err
+	}
+	byteYears := regexpImport.FindAllSubmatch(fileBytes, -1)
+
+	foundDays := make([]string, 0, len(byteYears))
+	for _, yb := range byteYears {
+		if len(yb) < 2 {
+			continue
+		}
+		d := string(yb[1])
+		if !slices.Contains(foundDays, d) {
+			foundDays = append(foundDays, d)
+		}
+	}
+	for _, d := range days {
+		if !slices.Contains(foundDays, d) {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
 func generatDaySolve(moduleName, year string, day string) error {
 	err := createDirIfNotExists(fmt.Sprintf("./internal/year%s/day%s", year, day))
 	if err != nil {
@@ -163,7 +213,7 @@ func generatDaySolve(moduleName, year string, day string) error {
 
 	solveFilePath := fmt.Sprintf("./internal/year%s/day%s/solve.go", year, day)
 
-	exists, err := fileExists(solveFilePath)
+	exists, err := util.FileExists(solveFilePath)
 	if err != nil {
 		return err
 	}
@@ -252,17 +302,6 @@ func createDirIfNotExists(path string) error {
 		return err
 	}
 	return nil
-}
-
-func fileExists(filePath string) (exists bool, err error) {
-	_, err = os.Stat(filePath)
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return true, nil
 }
 
 func createEmptyFileIfNotExists(filePath string) error {
