@@ -1,5 +1,8 @@
-ENTRYPOINT=./main.go
-BINARY_NAME=aoc2024
+ENTRYPOINT=./cmd/aoc/aoc.go
+BINARY_NAME=aoc
+
+GEN_ENTRYPOINT=./cmd/generator/generator.go
+GEN_BINARY_NAME=generator
 
 BENCH=
 
@@ -7,21 +10,22 @@ YEAR=
 DAY=
 
 run: build
+	./dist/$(GEN_BINARY_NAME) $(YEAR) $(DAY)
 	./dist/$(BINARY_NAME) $(YEAR) $(DAY)
 
 dev:
 	go run $(ENTRYPOINT_NAME) $(YEAR) $(DAY)
 
-download:
 
 all: tests build
 
-# perhaps add GOAMD64=v3 to architecture
-build:
-	go build -ldflags='-s -w' -o dist/$(BINARY_NAME) $(ENTRYPOINT_NAME)
+build: build-scraper build-generator
 
-test-out-pipe: build
-	./dist/${BINARY_NAME2} --pipe-to="$(ENTRYPOINT_NAME3) ./tmp/test_file.txt"
+build-scraper:
+	go build -ldflags='-s -w' -o dist/$(BINARY_NAME) $(ENTRYPOINT)
+
+build-generator:
+	go build -ldflags='-s -w' -o dist/$(GEN_BINARY_NAME) $(GEN_ENTRYPOINT)
 
 tests:
 	go test ./...
