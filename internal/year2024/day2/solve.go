@@ -19,7 +19,7 @@ func Solve() (solution1, solution2 string, err error) {
 	)
 
 	err = util.DoEachRowFile(inputFile, func(row []byte, nr int) error {
-		report = util.ParseInt64ArrNoError(row)
+		report = util.ParseInt64ArrNoErrorCache(row, report)
 		if len(report) == 0 {
 			return nil
 		}
