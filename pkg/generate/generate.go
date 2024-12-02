@@ -20,14 +20,14 @@ const (
 //go:embed templates
 var files embed.FS
 
-type yearData struct {
+type YearData struct {
 	Imports []string
 	Cases   []string
 	Year    string
 	ModName string
 }
 
-type dayData struct {
+type DayData struct {
 	Day  string
 	Year string
 }
@@ -61,7 +61,13 @@ func Generate(year string, days []string) error {
 }
 
 func generateSolver(moduleName, year string) error {
-	years := getYears(year)
+	years := getYears(moduleName)
+	// do not change file if year already implemented
+	if slices.Contains(years, year) {
+		return nil
+	}
+	years = append(years, year)
+	slices.Sort(years)
 	f, err := os.Create("./internal/solve.go")
 	if err != nil {
 		return err
@@ -73,7 +79,7 @@ func generateSolver(moduleName, year string) error {
 		}
 	}()
 
-	data := yearData{
+	data := YearData{
 		Imports: make([]string, 0, len(years)),
 		Cases:   make([]string, 0, len(years)),
 		Year:    year,
@@ -88,7 +94,7 @@ func generateSolver(moduleName, year string) error {
 			intendent = "\n\t"
 		}
 	}
-	t, err := template.ParseFS(files, "templates/solve")
+	t, err := template.ParseFS(files, "templates/solve.go.tmpl")
 	if err != nil {
 		return err
 	}
@@ -99,30 +105,12 @@ func generateSolver(moduleName, year string) error {
 	return nil
 }
 
-func getYears(year string) []string {
-	yearRegex, err := regexp.Compile(`\d{4}`)
-	if err != nil {
-		return nil
-	}
-	oldFile, err := os.ReadFile("./internal/solve.go")
-	if err != nil {
-		return nil
-	}
-	byteYears := yearRegex.FindAll(oldFile, -1)
-	result := make([]string, 0, len(byteYears)+1)
-	result = append(result, year)
-	for _, yb := range byteYears {
-		y := string(yb)
-		if !slices.Contains(result, y) {
-			result = append(result, y)
-		}
-	}
-	slices.Sort(result)
-	return result
-}
-
 func generateYearSolve(moduleName, year string, days []string) error {
-	err := os.Mkdir(fmt.Sprintf("./internal/year%s", year), 0775)
+	err := createDirIfNotExists(fmt.Sprintf("./internal/year%s", year))
+	if err != nil {
+		return err
+	}
+
 	f, err := os.Create(fmt.Sprintf("./internal/year%s/solve.go", year))
 	if err != nil {
 		return err
@@ -133,7 +121,8 @@ func generateYearSolve(moduleName, year string, days []string) error {
 			err = errors.Join(err, err2)
 		}
 	}()
-	data := yearData{
+
+	data := YearData{
 		Imports: make([]string, 0, len(days)),
 		Cases:   make([]string, 0, len(days)),
 		Year:    year,
@@ -148,7 +137,57 @@ func generateYearSolve(moduleName, year string, days []string) error {
 			intendent = "\n\t"
 		}
 	}
-	t, err := template.ParseFS(files, "templates/solve_year")
+	t, err := template.ParseFS(files, "templates/solve_year.go.tmpl")
+	if err != nil {
+		return err
+	}
+
+	err = t.Execute(f, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func generatDaySolve(moduleName, year string, day string) error {
+	err := createDirIfNotExists(fmt.Sprintf("./internal/year%s/day%s", year, day))
+	if err != nil {
+		return err
+	}
+
+	err = createEmptyFileIfNotExists(fmt.Sprintf("./internal/year%s/day%s/example", year, day))
+	if err != nil {
+		return err
+	}
+
+	solveFilePath := fmt.Sprintf("./internal/year%s/day%s/solve.go", year, day)
+
+	exists, err := fileExists(solveFilePath)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	f, err := os.Create(solveFilePath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err2 := f.Close()
+		if err2 != nil {
+			err = errors.Join(err, err2)
+		}
+	}()
+
+	data := DayData{
+		Day:  day,
+		Year: year,
+	}
+
+	t, err := template.ParseFS(files, "templates/solve_day.go.tmpl")
 	if err != nil {
 		return err
 	}
@@ -159,21 +198,28 @@ func generateYearSolve(moduleName, year string, days []string) error {
 	return nil
 }
 
-func generatDaySolve(moduleName, year string, day string) error {
-	data := dayData{
-		Day:  day,
-		Year: year,
-	}
-
-	t, err := template.ParseFS(files, "templates/solve_day")
+func getYears(moduleName string) []string {
+	yearRegex, err := regexp.Compile(`"` + moduleName + `/internal/year(\d{4})"`)
 	if err != nil {
-		return err
+		return nil
 	}
-	err = t.Execute(os.Stdout, data)
+	oldFile, err := os.ReadFile("./internal/solve.go")
 	if err != nil {
-		return err
+		return nil
 	}
-	return nil
+	byteYears := yearRegex.FindAllSubmatch(oldFile, -1)
+	result := make([]string, 0, len(byteYears)+1)
+	for _, yb := range byteYears {
+		if len(yb) < 2 {
+			continue
+		}
+		y := string(yb[1])
+		if !slices.Contains(result, y) {
+			result = append(result, y)
+		}
+	}
+	slices.Sort(result)
+	return result
 }
 
 func getModuleName() (string, error) {
@@ -182,9 +228,59 @@ func getModuleName() (string, error) {
 		return "", ErrFailedToGetModuleName
 	}
 
-	// this might be hacky.
 	if len(bi.Deps) == 0 {
 		return "", ErrFailedToGetModuleName
 	}
-	return bi.Deps[0].Path, nil
+	// this is still a bit hacky probably should look at the actual mod file or something
+	for _, d := range bi.Deps {
+		if d.Version == "(devel)" {
+			return d.Path, nil
+		}
+	}
+
+	return "", ErrFailedToGetModuleName
+}
+
+func createDirIfNotExists(path string) error {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		err = os.Mkdir(path, 0775)
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
+func fileExists(filePath string) (exists bool, err error) {
+	_, err = os.Stat(filePath)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func createEmptyFileIfNotExists(filePath string) error {
+	var f *os.File
+	_, err := os.Stat(filePath)
+	if os.IsNotExist(err) {
+		f, err = os.Create(filePath)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			err2 := f.Close()
+			if err2 != nil {
+				err = errors.Join(err, err2)
+			}
+		}()
+	} else if err != nil {
+		return err
+	}
+	return nil
 }
