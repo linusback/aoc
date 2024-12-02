@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
+	"github.com/JohannesKaufmann/html-to-markdown/v2/converter"
 	"github.com/linusback/aoc2024/pkg/errorsx"
 	"github.com/linusback/aoc2024/pkg/util"
 	"io"
@@ -275,7 +276,8 @@ func parseHtmlToMarkdown(w io.Writer, r io.Reader) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	by, err = htmltomarkdown.ConvertReader(bytes.NewReader(reg.Find(by)))
+	by, err = htmltomarkdown.ConvertReader(bytes.NewReader(reg.Find(by)),
+		converter.WithDomain("https://adventofcode.com/"))
 	if err != nil {
 		return 0, err
 	}
