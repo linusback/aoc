@@ -12,40 +12,31 @@ import (
 
 func main() {
 	var (
-		days []string
+		day  string
 		err  error
 		year string
 	)
 
-	year, days, err = util.GetYearDays(os.Args)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if len(days) == 0 {
-		log.Fatal("no days selected")
-	}
-
-	err = aoc.Download(year, days)
+	year, day, err = util.GetYearDay(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var solution1, solution2 string
 	start := time.Now()
-	solution1, solution2, err = internal.Solve(year, days[0])
+	solution1, solution2, err = internal.Solve(year, day)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 	log.Println("result 1: ", solution1)
 	log.Println("result 2: ", solution2)
 	log.Println("Time elapsed:", time.Since(start))
 
-	err = send(aoc.Part1, days[0], solution1)
+	err = send(aoc.Part1, day, solution1)
 	if err != nil {
 		log.Println(err)
 	}
-	err = send(aoc.Part2, days[0], solution2)
+	err = send(aoc.Part2, day, solution2)
 	if err != nil {
 		log.Println(err)
 	}

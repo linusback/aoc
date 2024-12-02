@@ -9,13 +9,16 @@ BENCH=
 YEAR=
 DAY=
 
-run: build
-	./dist/$(GEN_BINARY_NAME) $(YEAR) $(DAY)
-	./dist/$(BINARY_NAME) $(YEAR) $(DAY)
+run: build-generator build-scraper
 
 dev:
 	go run $(ENTRYPOINT_NAME) $(YEAR) $(DAY)
 
+run-scraper: build-scraper
+	./dist/$(BINARY_NAME) $(YEAR) $(DAY)
+
+run-generator: build-generator
+	./dist/$(GEN_BINARY_NAME) $(YEAR) $(DAY)
 
 all: tests build
 
