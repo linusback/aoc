@@ -54,11 +54,9 @@ func DoEachRowBuff(r *bufio.Reader, f func(row []byte, nr int) error) (err error
 			done = true
 			err = nil
 		}
-		if len(row) > 0 {
-			err = f(row, i)
-			if err != nil {
-				return
-			}
+		err = f(row, i)
+		if err != nil {
+			return
 		}
 	}
 	return

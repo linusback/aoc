@@ -19,6 +19,9 @@ func Solve() (solution1, solution2 string, err error) {
 	)
 
 	err = util.DoEachRowFile(inputFile, func(row []byte, nr int) error {
+		if len(row) == 0 {
+			return nil
+		}
 		report = util.ParseInt64ArrNoErrorCache(row, report)
 		if len(report) == 0 {
 			return nil

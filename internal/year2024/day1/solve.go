@@ -17,6 +17,9 @@ type occurrences [][2]int64
 func Solve() (solution1, solution2 string, err error) {
 	col1, col2 := make([]int64, 0), make([]int64, 0)
 	err = util.DoEachRowFile(inputFile, func(row []byte, nr int) error {
+		if len(row) == 0 {
+			return nil
+		}
 		u := util.ParseInt64ArrNoError(row)
 		if len(u) < 2 {
 			return nil
