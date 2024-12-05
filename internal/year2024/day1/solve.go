@@ -2,7 +2,7 @@ package day1
 
 import (
 	"errors"
-	"github.com/linusback/aoc2024/pkg/util"
+	"github.com/linusback/aoc/pkg/util"
 	"slices"
 	"strconv"
 )

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/linusback/aoc2024/pkg/aoc"
-	"github.com/linusback/aoc2024/pkg/generate"
-	"github.com/linusback/aoc2024/pkg/util"
+	"github.com/linusback/aoc/pkg/aoc"
+	"github.com/linusback/aoc/pkg/generate"
+	"github.com/linusback/aoc/pkg/util"
 	"log"
 	"os"
 	"slices"

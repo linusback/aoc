@@ -1,7 +1,7 @@
 package day2
 
 import (
-	"github.com/linusback/aoc2024/pkg/util"
+	"github.com/linusback/aoc/pkg/util"
 	"strconv"
 )
 

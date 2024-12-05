@@ -1,8 +1,8 @@
 package internal
 
 import (
-    "github.com/linusback/aoc2024/internal/year2024"
-	"github.com/linusback/aoc2024/pkg/errorsx"
+	"github.com/linusback/aoc/internal/year2024"
+	"github.com/linusback/aoc/pkg/errorsx"
 )
 
 func Solve(year, day string) (solution1, solution2 string, err error) {

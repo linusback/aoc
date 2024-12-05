@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/linusback/aoc2024/internal"
-	"github.com/linusback/aoc2024/pkg/aoc"
-	"github.com/linusback/aoc2024/pkg/util"
+	"github.com/linusback/aoc/internal"
+	"github.com/linusback/aoc/pkg/aoc"
+	"github.com/linusback/aoc/pkg/util"
 	"log"
 	"os"
 	"time"

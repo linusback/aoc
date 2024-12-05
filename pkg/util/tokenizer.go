@@ -1,7 +1,7 @@
 package util
 
 import (
-	"github.com/linusback/aoc2024/pkg/errorsx"
+	"github.com/linusback/aoc/pkg/errorsx"
 	"unsafe"
 )
 
