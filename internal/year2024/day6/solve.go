@@ -15,15 +15,23 @@ import (
 const (
 	exampleFile = "./internal/year2024/day6/example"
 	inputFile   = "./internal/year2024/day6/input"
-	selected    = inputFile
 )
 
-type pos struct {
-	y, x uint8
+func Solve() (solution1, solution2 string, err error) {
+	return solve(inputFile)
 }
 
-func (p pos) Equal(o pos) bool {
-	return p.y == o.y && p.x == o.x
+type pos uint16
+
+func newPos(y, x uint8) pos {
+	return pos(uint16(x) | uint16(y)<<8)
+}
+func (p pos) y() uint8 {
+	return uint8(p >> 8)
+}
+
+func (p pos) x() uint8 {
+	return uint8(p & math.MaxUint8)
 }
 
 type guard struct {
@@ -33,84 +41,80 @@ type guard struct {
 
 //goland:noinspection GoMixedReceiverTypes
 func (g *guard) rotate90() {
-	if g.dir == 3 {
-		g.dir = 0
-		return
-	}
-	g.dir++
+	g.dir = (g.dir + 1) % 4
 }
 
 //goland:noinspection GoMixedReceiverTypes
 func (g *guard) move() {
-	g.y += directions[g.dir].y
-	g.x += directions[g.dir].x
+	p := directions[g.dir]
+	g.pos = newPos(p.y()+g.pos.y(), p.x()+g.pos.x())
 }
 
 //goland:noinspection GoMixedReceiverTypes
 func (g guard) isNextObstacles() (ok bool) {
-	newPos := directions[g.dir]
-	newPos.y += g.y
-	newPos.x += g.x
-	_, ok = obstacles[newPos]
-	return
+	if g.y() == 0 && g.dir == 0 || g.x() == 0 && g.dir == 3 {
+		return false
+	}
+	p := directions[g.dir]
+	p = newPos(p.y()+g.pos.y(), p.x()+g.pos.x())
+	return obstacles[p] == 1
 }
 
 //goland:noinspection GoMixedReceiverTypes
 func (g guard) isNextObstaclesWithNew(p pos) (ok bool) {
-	newPos := directions[g.dir]
-	newPos.y += g.y
-	newPos.x += g.x
-	_, ok = obstacles[newPos]
-	return ok || p.Equal(newPos)
+	if g.y() == 0 && g.dir == 0 || g.x() == 0 && g.dir == 3 {
+		return false
+	}
+	np := directions[g.dir]
+	np = newPos(np.y()+g.pos.y(), np.x()+g.pos.x())
+	return np == p || obstacles[np] == 1
 }
 
 //goland:noinspection GoMixedReceiverTypes
 func (g guard) isInside() bool {
-	return g.y <= yMax && g.x <= xMax // -1 should wrap around to an even bigger number.
+	return g.pos <= maxPos && g.pos.x() <= maxPosX // -1 should wrap around to an even bigger number.
 }
 
 var (
-	directions                = [...]pos{{math.MaxUint8, 0}, {0, 1}, {1, 0}, {0, math.MaxUint8}}
+	directions                = [...]pos{newPos(math.MaxUint8, 0), newPos(0, 1), newPos(1, 0), newPos(0, math.MaxUint8)}
 	securityGuard, startGuard guard
-
-	//addedObstacles pos // for print debug
-	obstacles    = make(map[pos]struct{}, 1000)
+	//obstacles                 = [33410]uint8{}
+	obstacles    = [33410]uint8{}
 	directedPath = make(map[guard]struct{}, 10000)
-	yMax, xMax   uint8
+	maxPos       pos
+	maxPosX      uint8
+	//addedObstacles pos // for print debug
 )
-
-func Solve() (solution1, solution2 string, err error) {
-	return solve(selected)
-}
 
 func solve(filename string) (solution1, solution2 string, err error) {
 	startTime := time.Now()
+	var maxY uint8
 	err = util.DoEachRowFile(filename, func(row []byte, nr int) error {
 		if nr == 0 {
 			if len(row) > math.MaxUint8 {
 				log.Fatal("len of row needs to be less then uint8 max")
 			}
-			xMax = uint8(len(row)) - 1
+			maxPos |= pos(len(row) - 1)
 		}
 		if nr > math.MaxUint8 {
 			log.Fatal("len of row needs to be less then uint8 max")
 		}
 		y := uint8(nr)
-		yMax = y
+		maxY = y
 		for xi, b := range row {
 			x := uint8(xi)
 			switch b {
 			case '#':
-				obstacles[pos{y, x}] = struct{}{}
+				obstacles[uint16(x)|uint16(y)<<8] = 1
 			case '^':
-				securityGuard.y = y
-				securityGuard.x = x
+				securityGuard.pos = newPos(y, x)
 				startGuard = securityGuard
 			}
 		}
 		return nil
 	})
-
+	maxPos |= pos(maxY) << 8
+	maxPosX = maxPos.x()
 	visited := make(map[pos]struct{}, 10000)
 	for securityGuard.isInside() {
 		visited[securityGuard.pos] = struct{}{}
@@ -144,21 +148,24 @@ func solve2Parallel(visited map[pos]struct{}) uint64 {
 
 func travelParallel(wg *sync.WaitGroup, ch <-chan pos, myGuard guard, answer *atomic.Uint64) {
 	defer wg.Done()
-	path := make(map[guard]struct{}, 7000)
+	path := [33410][4]uint8{}
 	myStart := myGuard
 	for p := range ch {
-		clear(path)
+		path = [33410][4]uint8{}
 		myGuard = myStart
-		for myGuard.isInside() {
+		for {
 			for myGuard.isNextObstaclesWithNew(p) {
 				myGuard.rotate90()
 			}
 			myGuard.move()
-			if _, ok := path[myGuard]; ok {
+			if !myGuard.isInside() {
+				break
+			}
+			if path[myGuard.pos][myGuard.dir] == 1 {
 				answer.Add(1)
 				break
 			}
-			path[myGuard] = struct{}{}
+			path[myGuard.pos][myGuard.dir] = 1
 		}
 	}
 }
@@ -169,11 +176,11 @@ func solve2(visited map[pos]struct{}) int {
 	delete(visited, startGuard.pos)
 	for p := range visited {
 		//addedObstacles = p // for print debug
-		obstacles[p] = struct{}{}
+		obstacles[p] = 1
 		if travelNewMap() {
 			loopCount++
 		}
-		delete(obstacles, p)
+		obstacles[p] = 0
 	}
 	return loopCount
 }
@@ -213,20 +220,19 @@ func printObstaclesMap(directedPath map[pos]int) {
 		ok  bool
 		dir int
 	)
-	for y := uint8(0); y <= yMax; y++ {
-		for x := uint8(0); x <= xMax; x++ {
-			p.y = y
-			p.x = x
+	for y := uint8(0); y <= maxPos.y(); y++ {
+		for x := uint8(0); x <= maxPos.x(); x++ {
+			p = newPos(y, x)
 			// add back if debug
 			//if p.Equal(addedObstacles) {
 			//	_ = sb.WriteByte('O')
 			//	continue
 			//}
-			if p.Equal(startGuard.pos) {
+			if p == startGuard.pos {
 				_ = sb.WriteByte('^')
 				continue
 			}
-			if _, ok = obstacles[p]; ok {
+			if obstacles[p] == 1 {
 				_ = sb.WriteByte('#')
 				continue
 			}

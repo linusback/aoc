@@ -1,6 +1,10 @@
 package day6
 
-import "testing"
+import (
+	"io"
+	"log"
+	"testing"
+)
 
 const testFilename = "./input"
 
@@ -14,8 +18,10 @@ func Test_Solve(t *testing.T) {
 }
 
 func Benchmark_Day6_Solve(b *testing.B) {
+	log.SetOutput(io.Discard)
 	b.ReportAllocs()
 	b.SetBytes(17030)
+	b.ResetTimer()
 	var err error
 	for i := 0; i < b.N; i++ {
 		_, _, err = solve(testFilename)
