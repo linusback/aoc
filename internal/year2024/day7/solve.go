@@ -1,21 +1,47 @@
 package day7
 
 import (
+	"github.com/linusback/aoc/pkg/util"
 	"log"
-	"os"
 )
 
+type symbol byte
+
 const (
-	exampleFile = "./internal/year2024/day7/example"
-	inputFile   = "./internal/year2024/day7/input"
+	exampleFile        = "./internal/year2024/day7/example"
+	inputFile          = "./internal/year2024/day7/input"
+	plus        symbol = '+'
+	multi       symbol = '*'
 )
 
 func Solve() (solution1, solution2 string, err error) {
-	log.Println("welcome to day 7 of advent of code")
-	b, err := os.ReadFile(exampleFile)
+	return solve(exampleFile)
+}
+
+func solve(filename string) (solution1, solution2 string, err error) {
+	var rules [][]uint64
+	err = util.DoEachRowFile(filename, func(row []byte, nr int) error {
+
+		rules = append(rules, util.ParseUint64ArrNoError(row))
+		return nil
+	})
 	if err != nil {
 		return
 	}
-	log.Println(string(b))
+	var acc1 uint64
+	for _, r := range rules {
+		if isValid1(r) {
+			acc1 += r[0]
+		}
+	}
+	log.Println(rules)
 	return
+}
+
+func isValid1(r []uint64) bool {
+	res := r[0]
+	acc := r[1]
+	rest := r[2:]
+
+	return false
 }
