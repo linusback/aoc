@@ -2,31 +2,19 @@ package util
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
 	"io"
 	"os"
 )
 
-func DoEachRowAll(input []byte, f func(row []byte, rows [][]byte, nr, total int) error) (err error) {
-	b := bytes.Split(input, []byte{'\n'})
-	return DoEachRowAllBytes(b, f)
-}
+type (
+	RowFunc       func(row []byte, nr int) error
+	ExecFunc      func(*bufio.Reader, RowFunc, ...RowFunc) error
+	MultiRowFunc  func(row [][]byte, nr int) error
+	MultiExecFunc func(*bufio.Reader, int, MultiRowFunc, ...MultiRowFunc) error
+)
 
-func DoEachRowAllBytes(rows [][]byte, f func(row []byte, rows [][]byte, nr, total int) error) (err error) {
-	var (
-		total = len(rows)
-	)
-	for i := 0; i < total; i++ {
-		err = f(rows[i], rows, i, total)
-		if err != nil {
-			return
-		}
-	}
-	return
-}
-
-func DoEachRowFile(filename string, rowFunc func(row []byte, nr int) error) (err error) {
+func DoFile(filename string, execFunc ExecFunc, rowFunc RowFunc, extra ...RowFunc) (err error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -37,10 +25,14 @@ func DoEachRowFile(filename string, rowFunc func(row []byte, nr int) error) (err
 			err = errors.Join(err, err2)
 		}
 	}()
-	return DoEachRowBuff(bufio.NewReader(f), rowFunc)
+	return execFunc(bufio.NewReader(f), rowFunc, extra...)
 }
 
-func DoEachRowBuff(r *bufio.Reader, f func(row []byte, nr int) error) (err error) {
+func DoEachRowFile(filename string, rowFunc RowFunc, extra ...RowFunc) (err error) {
+	return DoFile(filename, DoEachRowBuff, rowFunc, extra...)
+}
+
+func DoEachRowBuff(r *bufio.Reader, f RowFunc, extra ...RowFunc) (err error) {
 	var (
 		row  []byte
 		done bool
@@ -54,6 +46,19 @@ func DoEachRowBuff(r *bufio.Reader, f func(row []byte, nr int) error) (err error
 			done = true
 			err = nil
 		}
+		if len(row) > 0 {
+			// removing delim
+			row = row[:len(row)-1]
+		}
+		if len(row) == 0 {
+			if len(extra) > 0 {
+				f = extra[0]
+				extra = extra[:len(extra)-1]
+				continue
+			}
+			return
+		}
+
 		err = f(row, i)
 		if err != nil {
 			return
@@ -62,7 +67,7 @@ func DoEachRowBuff(r *bufio.Reader, f func(row []byte, nr int) error) (err error
 	return
 }
 
-func DoEachRowFileN(filename string, n int, rowFunc func(rows [][]byte, nr int) error) (err error) {
+func DoFileN(filename string, n int, execFunc MultiExecFunc, rowFunc MultiRowFunc, extra ...MultiRowFunc) (err error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -73,10 +78,14 @@ func DoEachRowFileN(filename string, n int, rowFunc func(rows [][]byte, nr int) 
 			err = errors.Join(err, err2)
 		}
 	}()
-	return DoEachRowBuffN(bufio.NewReader(f), n, rowFunc)
+	return execFunc(bufio.NewReader(f), n, rowFunc, extra...)
 }
 
-func DoEachRowBuffN(r *bufio.Reader, n int, f func(rows [][]byte, nr int) error) (err error) {
+func DoEachRowFileN(filename string, n int, rowFunc MultiRowFunc, extra ...MultiRowFunc) (err error) {
+	return DoFileN(filename, n, DoEachRowBuffN, rowFunc, extra...)
+}
+
+func DoEachRowBuffN(r *bufio.Reader, n int, f MultiRowFunc, extra ...MultiRowFunc) (err error) {
 	var (
 		done bool
 		row  []byte
@@ -93,7 +102,18 @@ func DoEachRowBuffN(r *bufio.Reader, n int, f func(rows [][]byte, nr int) error)
 			err = nil
 		}
 		if len(row) > 0 {
+			// removing delim
+			row = row[:len(row)-1]
+		}
+		if len(row) > 0 {
 			rows = append(rows, row)
+		} else {
+			if len(extra) > 0 {
+				f = extra[0]
+				extra = extra[:len(extra)-1]
+				continue
+			}
+			return
 		}
 		if len(rows) == n {
 			err = f(rows, i)
