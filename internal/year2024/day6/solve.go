@@ -4,12 +4,10 @@ import (
 	"github.com/linusback/aoc/pkg/util"
 	"log"
 	"maps"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 const (
@@ -80,8 +78,12 @@ var (
 )
 
 func Solve() (solution1, solution2 string, err error) {
-	startTime := time.Now()
-	err = util.DoEachRowFile(selected, func(row []byte, nr int) error {
+	return solve(selected)
+}
+
+func solve(filename string) (solution1, solution2 string, err error) {
+	//startTime := time.Now()
+	err = util.DoEachRowFile(filename, func(row []byte, nr int) error {
 		if nr == 0 {
 			xMax = len(row) - 1
 		}
@@ -109,19 +111,19 @@ func Solve() (solution1, solution2 string, err error) {
 		securityGuard.move()
 	}
 	solution1 = strconv.Itoa(len(visited))
-	log.Println("Time part 1: ", time.Since(startTime))
-	startTime = time.Now()
+	//log.Println("Time part 1: ", time.Since(startTime))
+	//startTime = time.Now()
 	//solution2 = strconv.Itoa(solve2(visited))
 	solution2 = strconv.FormatUint(solve2Parallel(visited), 10)
-	log.Println("Time part 2: ", time.Since(startTime))
+	//log.Println("Time part 2: ", time.Since(startTime))
 
 	return
 }
 
 func solve2Parallel(visited map[pos]struct{}) uint64 {
-	parallel := runtime.NumCPU()
+	parallel := 20
 	delete(visited, startGuard.pos)
-	wg, ch := util.SeqToChannel(maps.Keys(visited), parallel)
+	wg, ch := util.SeqToChannel(maps.Keys(visited), parallel*2)
 	wg.Add(parallel)
 	answer := new(atomic.Uint64)
 	for range parallel {

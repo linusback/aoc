@@ -5,6 +5,7 @@ GEN_ENTRYPOINT=./cmd/generator/generator.go
 GEN_BINARY_NAME=generator
 
 BENCHMARK="."
+BENCH_TIME="3s"
 
 YEAR=
 DAY=
@@ -37,7 +38,7 @@ bench:
 	go test ./... -bench=$(BENCHMARK) -benchtime 3s -run=^\# -cpu=1,20
 
 bench-prof:
-	go test ./internal/$(BENCH) -bench=$(BENCHMARK) -benchtime 3s -run=^\# -cpu=20 -cpuprofile ./tmp/$(subst /,-,$(BENCH))_cpu.prof -memprofile ./tmp/$(subst /,-,$(BENCH))_mem.prof -o ./tmp/$(subst /,-,$(BENCH)).test
+	go test ./internal/$(BENCH) -bench=$(BENCHMARK) -benchtime $(BENCH_TIME) -run=^\# -cpu=20 -cpuprofile ./tmp/$(subst /,-,$(BENCH))_cpu.prof -memprofile ./tmp/$(subst /,-,$(BENCH))_mem.prof -o ./tmp/$(subst /,-,$(BENCH)).test
 
 
 clean:
