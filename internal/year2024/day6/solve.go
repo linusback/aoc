@@ -3,8 +3,12 @@ package day6
 import (
 	"github.com/linusback/aoc/pkg/util"
 	"log"
+	"maps"
+	"runtime"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -51,15 +55,23 @@ func (g guard) isNextObstacles() bool {
 }
 
 //goland:noinspection GoMixedReceiverTypes
+func (g guard) isNextObstaclesParallel(myObstacles map[pos]bool) bool {
+	newPos := directions[g.dir]
+	newPos.y += g.y
+	newPos.x += g.x
+	return myObstacles[newPos]
+}
+
+//goland:noinspection GoMixedReceiverTypes
 func (g guard) isInside() bool {
 	return 0 <= g.y && g.y <= yMax &&
 		0 <= g.x && g.x <= xMax
 }
 
 var (
-	directions    = [...]pos{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}
-	s             struct{} // empty no alloc special go val
-	g, startGuard guard
+	directions                = [...]pos{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}
+	s                         struct{} // empty no alloc special go val
+	securityGuard, startGuard guard
 
 	//addedObstacles pos // for print debug
 	obstacles    = make(map[pos]bool, 1000)
@@ -80,29 +92,67 @@ func Solve() (solution1, solution2 string, err error) {
 			case '#':
 				obstacles[pos{y, x}] = true
 			case '^':
-				g.y = y
-				g.x = x
-				startGuard = g
+				securityGuard.y = y
+				securityGuard.x = x
+				startGuard = securityGuard
 			}
 		}
 		return nil
 	})
 
 	visited := make(map[pos]struct{}, 10000)
-	for g.isInside() {
-		visited[g.pos] = s
-		for g.isNextObstacles() {
-			g.rotate90()
+	for securityGuard.isInside() {
+		visited[securityGuard.pos] = s
+		for securityGuard.isNextObstacles() {
+			securityGuard.rotate90()
 		}
-		g.move()
+		securityGuard.move()
 	}
 	solution1 = strconv.Itoa(len(visited))
-	log.Println("done part 1: ", time.Since(startTime))
+	log.Println("Time part 1: ", time.Since(startTime))
 	startTime = time.Now()
-	solution2 = strconv.Itoa(solve2(visited))
-	log.Println("done part 2: ", time.Since(startTime))
+	//solution2 = strconv.Itoa(solve2(visited))
+	solution2 = strconv.FormatUint(solve2Parallel(visited), 10)
+	log.Println("Time part 2: ", time.Since(startTime))
 
 	return
+}
+
+func solve2Parallel(visited map[pos]struct{}) uint64 {
+	parallel := runtime.NumCPU()
+	delete(visited, startGuard.pos)
+	wg, ch := util.SeqToChannel(maps.Keys(visited), parallel)
+	wg.Add(parallel)
+	answer := new(atomic.Uint64)
+	for range parallel {
+		go travelParallel(wg, ch, startGuard, answer)
+	}
+	wg.Wait()
+	return answer.Load()
+}
+
+func travelParallel(wg *sync.WaitGroup, ch <-chan pos, myGuard guard, answer *atomic.Uint64) {
+	defer wg.Done()
+	path := make(map[guard]struct{}, 10000)
+	myObstacles := maps.Clone(obstacles)
+	myStart := myGuard
+	for p := range ch {
+		myObstacles[p] = true
+		clear(path)
+		myGuard = myStart
+		for myGuard.isInside() {
+			for myGuard.isNextObstaclesParallel(myObstacles) {
+				myGuard.rotate90()
+			}
+			myGuard.move()
+			if _, ok := path[myGuard]; ok {
+				answer.Add(1)
+				break
+			}
+			path[myGuard] = s
+		}
+		myObstacles[p] = false
+	}
 }
 
 func solve2(visited map[pos]struct{}) int {
@@ -123,26 +173,26 @@ func solve2(visited map[pos]struct{}) int {
 func travelNewMap() (isLoop bool) {
 	//directedPrintPath := make(map[pos]int, 10000)
 	clear(directedPath)
-	g = startGuard
-	for g.isInside() {
-		//if dir, ok := directedPrintPath[g.pos]; ok {
+	securityGuard = startGuard
+	for securityGuard.isInside() {
+		//if dir, ok := directedPrintPath[securityGuard.pos]; ok {
 		//	// cross
-		//	if dir%2 != g.dir%2 {
-		//		directedPrintPath[g.pos] = 4
+		//	if dir%2 != securityGuard.dir%2 {
+		//		directedPrintPath[securityGuard.pos] = 4
 		//	}
 		//} else {
-		//	directedPrintPath[g.pos] = g.dir
+		//	directedPrintPath[securityGuard.pos] = securityGuard.dir
 		//}
-		for g.isNextObstacles() {
-			//directedPrintPath[g.pos] = 4
-			g.rotate90()
+		for securityGuard.isNextObstacles() {
+			//directedPrintPath[securityGuard.pos] = 4
+			securityGuard.rotate90()
 		}
-		g.move()
-		if _, ok := directedPath[g]; ok {
+		securityGuard.move()
+		if _, ok := directedPath[securityGuard]; ok {
 			//printObstaclesMap(added, directedPrintPath)
 			return true
 		}
-		directedPath[g] = s
+		directedPath[securityGuard] = s
 	}
 	return false
 }

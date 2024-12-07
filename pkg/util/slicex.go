@@ -2,7 +2,7 @@ package util
 
 import "slices"
 
-func AppendUnique[S interface{ ~[]E }, E comparable](s S, e ...E) S {
+func AppendUnique[S ~[]E, E comparable](s S, e ...E) S {
 	toAppend := make([]E, 0, len(e))
 	for _, c := range e {
 		if !slices.Contains(s, c) {
@@ -15,7 +15,7 @@ func AppendUnique[S interface{ ~[]E }, E comparable](s S, e ...E) S {
 	return append(s, toAppend...)
 }
 
-func AppendUniqueFunc[S interface{ ~[]E }, E comparable](s S, cmp func(E) bool, e ...E) S {
+func AppendUniqueFunc[S ~[]E, E comparable](s S, cmp func(E) bool, e ...E) S {
 	switch len(e) {
 	case 0:
 		return s

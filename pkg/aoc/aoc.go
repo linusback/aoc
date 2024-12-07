@@ -90,7 +90,7 @@ func checkExistingAnswer(filename, answer string) error {
 	}
 	existingAnswer = bytes.TrimSpace(existingAnswer)
 	if !util.BytesEqualString(existingAnswer, answer) {
-		return fmt.Errorf("existing answer: %s doesn't match new %s", existingAnswer, answer)
+		return fmt.Errorf("existing answer: \"%s\" doesn't match new \"%s\"", existingAnswer, answer)
 	}
 	return nil
 }
