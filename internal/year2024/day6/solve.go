@@ -11,7 +11,7 @@ import (
 const (
 	exampleFile = "./internal/year2024/day6/example"
 	inputFile   = "./internal/year2024/day6/input"
-	selected    = exampleFile
+	selected    = inputFile
 )
 
 type pos struct {
@@ -61,8 +61,10 @@ var (
 	s             struct{} // empty no alloc special go val
 	g, startGuard guard
 
-	obstacles  = make(map[pos]bool, 1000)
-	yMax, xMax int
+	//addedObstacles pos // for print debug
+	obstacles    = make(map[pos]bool, 1000)
+	directedPath = make(map[guard]struct{}, 10000)
+	yMax, xMax   int
 )
 
 func Solve() (solution1, solution2 string, err error) {
@@ -89,59 +91,64 @@ func Solve() (solution1, solution2 string, err error) {
 	visited := make(map[pos]struct{}, 10000)
 	for g.isInside() {
 		visited[g.pos] = s
-		if g.isNextObstacles() {
+		for g.isNextObstacles() {
 			g.rotate90()
 		}
 		g.move()
 	}
-	log.Println("done part 1: ", time.Since(startTime))
 	solution1 = strconv.Itoa(len(visited))
+	log.Println("done part 1: ", time.Since(startTime))
+	startTime = time.Now()
+	solution2 = strconv.Itoa(solve2(visited))
+	log.Println("done part 2: ", time.Since(startTime))
 
+	return
+}
+
+func solve2(visited map[pos]struct{}) int {
 	loopCount := 0
 	// ignore first position
 	delete(visited, startGuard.pos)
 	for p := range visited {
+		//addedObstacles = p // for print debug
 		obstacles[p] = true
-		if travelNewMap(p) {
+		if travelNewMap() {
 			loopCount++
 		}
 		obstacles[p] = false
 	}
-
-	log.Printf("got: %d, expected %d", loopCount, 1831)
-	return
+	return loopCount
 }
 
-func travelNewMap(added pos) (isLoop bool) {
-	directedPath := make(map[guard]struct{}, 10000)
-	directedPrintPath := make(map[pos]int, 10000)
+func travelNewMap() (isLoop bool) {
+	//directedPrintPath := make(map[pos]int, 10000)
+	clear(directedPath)
 	g = startGuard
 	for g.isInside() {
-		if _, ok := directedPath[g]; ok {
-			printObstaclesMap(added, directedPrintPath)
-			return true
-		}
-		directedPath[g] = s
-		if dir, ok := directedPrintPath[g.pos]; ok {
-			// cross
-			if dir%2 != g.dir%2 {
-				directedPrintPath[g.pos] = 4
-			}
-		} else {
-			directedPrintPath[g.pos] = g.dir
-		}
-
-		if g.isNextObstacles() {
-			directedPrintPath[g.pos] = 4
+		//if dir, ok := directedPrintPath[g.pos]; ok {
+		//	// cross
+		//	if dir%2 != g.dir%2 {
+		//		directedPrintPath[g.pos] = 4
+		//	}
+		//} else {
+		//	directedPrintPath[g.pos] = g.dir
+		//}
+		for g.isNextObstacles() {
+			//directedPrintPath[g.pos] = 4
 			g.rotate90()
 		}
 		g.move()
+		if _, ok := directedPath[g]; ok {
+			//printObstaclesMap(added, directedPrintPath)
+			return true
+		}
+		directedPath[g] = s
 	}
 	return false
 }
 
 // printObstaclesMap only used for debugging highly unoptimized
-func printObstaclesMap(added pos, directedPath map[pos]int) {
+func printObstaclesMap(directedPath map[pos]int) {
 	sb := strings.Builder{}
 	var (
 		p   pos
@@ -152,10 +159,11 @@ func printObstaclesMap(added pos, directedPath map[pos]int) {
 		for x := 0; x <= xMax; x++ {
 			p.y = y
 			p.x = x
-			if p.Equal(added) {
-				_ = sb.WriteByte('O')
-				continue
-			}
+			// add back if debug
+			//if p.Equal(addedObstacles) {
+			//	_ = sb.WriteByte('O')
+			//	continue
+			//}
 			if p.Equal(startGuard.pos) {
 				_ = sb.WriteByte('^')
 				continue
