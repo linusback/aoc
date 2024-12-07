@@ -42,6 +42,11 @@ var (
 )
 
 func Send(part Part, year, day, answer string) error {
+	if len(answer) == 0 {
+		log.Printf("empty answer part %s, skipping...\n", part)
+		return nil
+	}
+
 	answerFile := fmt.Sprintf("./internal/year%s/day%s/answer%s", year, day, part)
 	exists, err := util.FileExists(answerFile)
 	if err != nil {
@@ -49,7 +54,7 @@ func Send(part Part, year, day, answer string) error {
 	}
 	if exists {
 		log.Printf("already answer part %s, skipping...\n", part)
-		return nil
+		return checkExistingAnswer(answerFile, answer)
 	}
 	client, err := getSessionClient()
 	if err != nil {
@@ -75,6 +80,18 @@ func Send(part Part, year, day, answer string) error {
 		return err
 	}
 
+	return nil
+}
+
+func checkExistingAnswer(filename, answer string) error {
+	existingAnswer, err := os.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	existingAnswer = bytes.TrimSpace(existingAnswer)
+	if !util.BytesEqualString(existingAnswer, answer) {
+		return fmt.Errorf("existing answer: %s doesn't match new %s", existingAnswer, answer)
+	}
 	return nil
 }
 
