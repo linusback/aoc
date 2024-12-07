@@ -4,10 +4,12 @@ import (
 	"github.com/linusback/aoc/pkg/util"
 	"log"
 	"maps"
+	"math"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 const (
@@ -17,7 +19,7 @@ const (
 )
 
 type pos struct {
-	y, x int
+	y, x uint8
 }
 
 func (p pos) Equal(o pos) bool {
@@ -26,7 +28,7 @@ func (p pos) Equal(o pos) bool {
 
 type guard struct {
 	pos
-	dir int
+	dir uint8
 }
 
 //goland:noinspection GoMixedReceiverTypes
@@ -45,36 +47,36 @@ func (g *guard) move() {
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g guard) isNextObstacles() bool {
+func (g guard) isNextObstacles() (ok bool) {
 	newPos := directions[g.dir]
 	newPos.y += g.y
 	newPos.x += g.x
-	return obstacles[newPos]
+	_, ok = obstacles[newPos]
+	return
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g guard) isNextObstaclesParallel(myObstacles map[pos]bool) bool {
+func (g guard) isNextObstaclesWithNew(p pos) (ok bool) {
 	newPos := directions[g.dir]
 	newPos.y += g.y
 	newPos.x += g.x
-	return myObstacles[newPos]
+	_, ok = obstacles[newPos]
+	return ok || p.Equal(newPos)
 }
 
 //goland:noinspection GoMixedReceiverTypes
 func (g guard) isInside() bool {
-	return 0 <= g.y && g.y <= yMax &&
-		0 <= g.x && g.x <= xMax
+	return g.y <= yMax && g.x <= xMax // -1 should wrap around to an even bigger number.
 }
 
 var (
-	directions                = [...]pos{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}
-	s                         struct{} // empty no alloc special go val
+	directions                = [...]pos{{math.MaxUint8, 0}, {0, 1}, {1, 0}, {0, math.MaxUint8}}
 	securityGuard, startGuard guard
 
 	//addedObstacles pos // for print debug
-	obstacles    = make(map[pos]bool, 1000)
+	obstacles    = make(map[pos]struct{}, 1000)
 	directedPath = make(map[guard]struct{}, 10000)
-	yMax, xMax   int
+	yMax, xMax   uint8
 )
 
 func Solve() (solution1, solution2 string, err error) {
@@ -82,17 +84,24 @@ func Solve() (solution1, solution2 string, err error) {
 }
 
 func solve(filename string) (solution1, solution2 string, err error) {
-	//startTime := time.Now()
+	startTime := time.Now()
 	err = util.DoEachRowFile(filename, func(row []byte, nr int) error {
 		if nr == 0 {
-			xMax = len(row) - 1
+			if len(row) > math.MaxUint8 {
+				log.Fatal("len of row needs to be less then uint8 max")
+			}
+			xMax = uint8(len(row)) - 1
 		}
-		yMax = nr
-		y := nr
-		for x, b := range row {
+		if nr > math.MaxUint8 {
+			log.Fatal("len of row needs to be less then uint8 max")
+		}
+		y := uint8(nr)
+		yMax = y
+		for xi, b := range row {
+			x := uint8(xi)
 			switch b {
 			case '#':
-				obstacles[pos{y, x}] = true
+				obstacles[pos{y, x}] = struct{}{}
 			case '^':
 				securityGuard.y = y
 				securityGuard.x = x
@@ -104,18 +113,18 @@ func solve(filename string) (solution1, solution2 string, err error) {
 
 	visited := make(map[pos]struct{}, 10000)
 	for securityGuard.isInside() {
-		visited[securityGuard.pos] = s
+		visited[securityGuard.pos] = struct{}{}
 		for securityGuard.isNextObstacles() {
 			securityGuard.rotate90()
 		}
 		securityGuard.move()
 	}
 	solution1 = strconv.Itoa(len(visited))
-	//log.Println("Time part 1: ", time.Since(startTime))
-	//startTime = time.Now()
+	log.Println("Time part 1: ", time.Since(startTime))
+	startTime = time.Now()
 	//solution2 = strconv.Itoa(solve2(visited))
 	solution2 = strconv.FormatUint(solve2Parallel(visited), 10)
-	//log.Println("Time part 2: ", time.Since(startTime))
+	log.Println("Time part 2: ", time.Since(startTime))
 
 	return
 }
@@ -135,15 +144,13 @@ func solve2Parallel(visited map[pos]struct{}) uint64 {
 
 func travelParallel(wg *sync.WaitGroup, ch <-chan pos, myGuard guard, answer *atomic.Uint64) {
 	defer wg.Done()
-	path := make(map[guard]struct{}, 10000)
-	myObstacles := maps.Clone(obstacles)
+	path := make(map[guard]struct{}, 7000)
 	myStart := myGuard
 	for p := range ch {
-		myObstacles[p] = true
 		clear(path)
 		myGuard = myStart
 		for myGuard.isInside() {
-			for myGuard.isNextObstaclesParallel(myObstacles) {
+			for myGuard.isNextObstaclesWithNew(p) {
 				myGuard.rotate90()
 			}
 			myGuard.move()
@@ -151,9 +158,8 @@ func travelParallel(wg *sync.WaitGroup, ch <-chan pos, myGuard guard, answer *at
 				answer.Add(1)
 				break
 			}
-			path[myGuard] = s
+			path[myGuard] = struct{}{}
 		}
-		myObstacles[p] = false
 	}
 }
 
@@ -163,11 +169,11 @@ func solve2(visited map[pos]struct{}) int {
 	delete(visited, startGuard.pos)
 	for p := range visited {
 		//addedObstacles = p // for print debug
-		obstacles[p] = true
+		obstacles[p] = struct{}{}
 		if travelNewMap() {
 			loopCount++
 		}
-		obstacles[p] = false
+		delete(obstacles, p)
 	}
 	return loopCount
 }
@@ -194,7 +200,7 @@ func travelNewMap() (isLoop bool) {
 			//printObstaclesMap(added, directedPrintPath)
 			return true
 		}
-		directedPath[securityGuard] = s
+		directedPath[securityGuard] = struct{}{}
 	}
 	return false
 }
@@ -207,8 +213,8 @@ func printObstaclesMap(directedPath map[pos]int) {
 		ok  bool
 		dir int
 	)
-	for y := 0; y <= yMax; y++ {
-		for x := 0; x <= xMax; x++ {
+	for y := uint8(0); y <= yMax; y++ {
+		for x := uint8(0); x <= xMax; x++ {
 			p.y = y
 			p.x = x
 			// add back if debug
@@ -220,7 +226,7 @@ func printObstaclesMap(directedPath map[pos]int) {
 				_ = sb.WriteByte('^')
 				continue
 			}
-			if obstacles[p] {
+			if _, ok = obstacles[p]; ok {
 				_ = sb.WriteByte('#')
 				continue
 			}
