@@ -12,8 +12,12 @@ const (
 )
 
 func Solve() (solution1, solution2 string, err error) {
-	log.Println("welcome to day {{.Day}} of advent of code")
-	b, err := os.ReadFile(exampleFile)
+	return solve(exampleFile)
+}
+
+func solve(filename string) (solution1, solution2 string, err error) {
+    log.Println("welcome to day {{.Day}} of advent of code")
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		return
 	}
