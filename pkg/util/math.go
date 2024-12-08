@@ -37,7 +37,7 @@ func Combinate[E any](m int, items ...E) iter.Seq[[]E] {
 			}
 		}
 	}
-	zeroRes := Repeat(m, items[0])
+	res := Repeat(m, items[0])
 	n := PowerInt64(int64(len(items)), int64(m))
 
 	breakPoints := make([]int64, m)
@@ -52,7 +52,7 @@ func Combinate[E any](m int, items ...E) iter.Seq[[]E] {
 		val, idx int64
 	)
 	return func(yield func([]E) bool) {
-		if !yield(zeroRes) {
+		if !yield(res) {
 			return
 		}
 		for i := int64(1); i < n; i++ {
@@ -60,13 +60,13 @@ func Combinate[E any](m int, items ...E) iter.Seq[[]E] {
 			for k, b = range breakPoints {
 				if val >= b {
 					idx = val / b
-					zeroRes[k] = items[idx]
+					res[k] = items[idx]
 					val -= idx * b
 				} else {
-					zeroRes[k] = items[0]
+					res[k] = items[0]
 				}
 			}
-			if !yield(zeroRes) {
+			if !yield(res) {
 				return
 			}
 		}
@@ -78,4 +78,10 @@ func PowerInt64(x, y int64) int64 {
 	bx := big.NewInt(x)
 	by := big.NewInt(y)
 	return bx.Exp(bx, by, nil).Int64()
+}
+
+func PowerInt(x, y int) int {
+	bx := big.NewInt(int64(x))
+	by := big.NewInt(int64(y))
+	return int(bx.Exp(bx, by, nil).Int64())
 }
