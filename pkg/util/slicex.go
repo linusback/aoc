@@ -2,6 +2,17 @@ package util
 
 import "slices"
 
+func Repeat[E any](n int, e E) []E {
+	if n < 0 {
+		panic("cannot be negative")
+	}
+	res := make([]E, n)
+	for i := range n {
+		res[i] = e
+	}
+	return res
+}
+
 func AppendUnique[S ~[]E, E comparable](s S, e ...E) S {
 	toAppend := make([]E, 0, len(e))
 	for _, c := range e {
