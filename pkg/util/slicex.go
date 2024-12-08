@@ -1,6 +1,9 @@
 package util
 
-import "slices"
+import (
+	"iter"
+	"slices"
+)
 
 func Repeat[E any](n int, e E) []E {
 	if n < 0 {
@@ -11,6 +14,16 @@ func Repeat[E any](n int, e E) []E {
 		res[i] = e
 	}
 	return res
+}
+
+func ToKeysSeq2[S ~[]K, K comparable, V any](s S, v V) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for _, k := range s {
+			if !yield(k, v) {
+				return
+			}
+		}
+	}
 }
 
 func AppendUnique[S ~[]E, E comparable](s S, e ...E) S {

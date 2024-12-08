@@ -8,6 +8,7 @@ import (
 	"github.com/linusback/aoc/internal/year2024/day5"
 	"github.com/linusback/aoc/internal/year2024/day6"
 	"github.com/linusback/aoc/internal/year2024/day7"
+	"github.com/linusback/aoc/internal/year2024/day8"
 	"github.com/linusback/aoc/pkg/errorsx"
 )
 
@@ -29,6 +30,8 @@ func Solve(day string) (solution1, solution2 string, err error) {
 		return day6.Solve()
 	case "7":
 		return day7.Solve()
+	case "8":
+		return day8.Solve()
 	default:
 		err = errorsx.NewSolverError(year, day, errorsx.ErrDayNotCreated)
 		return
