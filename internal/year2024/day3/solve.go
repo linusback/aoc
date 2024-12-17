@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	exampleFile  = "./internal/year2024/day3/example"
+	exampleFile  = "./internal/year2024/day3/example.txt"
 	exampleFile2 = "./internal/year2024/day3/example2"
-	inputFile    = "./internal/year2024/day3/input"
+	inputFile    = "./internal/year2024/day3/input.txt"
 )
 
 func Solve() (solution1, solution2 string, err error) {

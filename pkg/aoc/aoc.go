@@ -7,6 +7,7 @@ import (
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/JohannesKaufmann/html-to-markdown/v2/converter"
 	"github.com/linusback/aoc/pkg/errorsx"
+	"github.com/linusback/aoc/pkg/filenames"
 	"github.com/linusback/aoc/pkg/util"
 	"io"
 	"log"
@@ -22,10 +23,8 @@ import (
 type Part string
 
 const (
-	Part1      Part = "1"
-	Part2      Part = "2"
-	InputFile       = "input"
-	PuzzleFile      = "puzzle.md"
+	Part1 Part = "1"
+	Part2 Part = "2"
 )
 
 const (
@@ -47,7 +46,7 @@ func Send(part Part, year, day, answer string) error {
 		return nil
 	}
 
-	answerFile := fmt.Sprintf("./internal/year%s/day%s/answer%s", year, day, part)
+	answerFile := fmt.Sprintf("./internal/year%s/day%s/%s", year, day, AnswerFile(part))
 	exists, err := util.FileExists(answerFile)
 	if err != nil {
 		return err
@@ -178,24 +177,24 @@ func download(client *http.Client, year, day string) error {
 		return err
 	}
 	if inputFound && puzzleFound {
-		log.Printf("internal/year%s/day%s/%s: file already exists skipping...\n", year, day, PuzzleFile)
-		log.Printf("internal/year%s/day%s/%s: file already exists skipping...\n", year, day, InputFile)
+		log.Printf("internal/year%s/day%s/%s: file already exists skipping...\n", year, day, filenames.PuzzleFile)
+		log.Printf("internal/year%s/day%s/%s: file already exists skipping...\n", year, day, filenames.InputFile)
 		return nil
 	}
 
 	errCh := make(chan error, 2)
 	wg := new(sync.WaitGroup)
 	if !puzzleFound {
-		log.Printf("generating internal/year%s/day%s/%s\n", year, day, PuzzleFile)
-		downloadFileAsync(wg, errCh, client, year, day, location, PuzzleFile, "", parseHtmlToMarkdown)
+		log.Printf("generating internal/year%s/day%s/%s\n", year, day, filenames.PuzzleFile)
+		downloadFileAsync(wg, errCh, client, year, day, location, filenames.PuzzleFile, "", parseHtmlToMarkdown)
 	} else {
-		log.Printf("internal/year%s/day%s/%s: file already exists skipping...\n", year, day, PuzzleFile)
+		log.Printf("internal/year%s/day%s/%s: file already exists skipping...\n", year, day, filenames.PuzzleFile)
 	}
 	if !inputFound {
-		log.Printf("generating internal/year%s/day%s/%s\n", year, day, InputFile)
-		downloadFileAsync(wg, errCh, client, year, day, location, InputFile, "/input", io.Copy)
+		log.Printf("generating internal/year%s/day%s/%s\n", year, day, filenames.InputFile)
+		downloadFileAsync(wg, errCh, client, year, day, location, filenames.InputFile, "/input", io.Copy)
 	} else {
-		log.Printf("internal/year%s/day%s/%s: file already exists skipping...\n", year, day, InputFile)
+		log.Printf("internal/year%s/day%s/%s: file already exists skipping...\n", year, day, filenames.InputFile)
 	}
 
 	wg.Wait()
@@ -208,7 +207,7 @@ func download(client *http.Client, year, day string) error {
 
 func reDownloadPuzzle(client *http.Client, year, day string) error {
 	location := fmt.Sprintf("./internal/year%s/day%s/", year, day)
-	err := downloadFile(client, year, day, location, PuzzleFile, "", parseHtmlToMarkdown)
+	err := downloadFile(client, year, day, location, filenames.PuzzleFile, "", parseHtmlToMarkdown)
 	if err != nil {
 		return err
 	}
@@ -306,6 +305,7 @@ func parseHtmlToMarkdown(w io.Writer, r io.Reader) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	// maybe try parsing looking for example use this regex "For example:\s*```[\s]?([^`]*)```"
 	return io.Copy(w, bytes.NewReader(by))
 }
 
@@ -356,10 +356,10 @@ func filesAlreadyExists(dir string) (inputFound, puzzleFound bool, err error) {
 		return
 	}
 	for _, e := range dirEntry {
-		if e.Name() == InputFile && e.Type().IsRegular() {
+		if e.Name() == filenames.InputFile && e.Type().IsRegular() {
 			inputFound = true
 		}
-		if e.Name() == PuzzleFile && e.Type().IsRegular() {
+		if e.Name() == filenames.PuzzleFile && e.Type().IsRegular() {
 			puzzleFound = true
 		}
 		if inputFound && puzzleFound {
@@ -368,4 +368,15 @@ func filesAlreadyExists(dir string) (inputFound, puzzleFound bool, err error) {
 	}
 
 	return
+}
+
+func AnswerFile(part Part) string {
+	switch part {
+	case Part1:
+		return filenames.Answer1
+	case Part2:
+		return filenames.Answer2
+	default:
+		panic(fmt.Sprintf("unknown aoc.Part type %s", part))
+	}
 }

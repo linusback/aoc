@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	exampleFile = "./internal/year2024/day2/example"
-	inputFile   = "./internal/year2024/day2/input"
+	exampleFile = "./internal/year2024/day2/example.txt"
+	inputFile   = "./internal/year2024/day2/input.txt"
 )
 
 func Solve() (solution1, solution2 string, err error) {

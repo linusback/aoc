@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	exampleFile = "./internal/year2024/day5/example"
-	inputFile   = "./internal/year2024/day5/input"
+	exampleFile = "./internal/year2024/day5/example.txt"
+	inputFile   = "./internal/year2024/day5/input.txt"
 )
 
 func Solve() (solution1, solution2 string, err error) {

@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	exampleFile = "./internal/year2024/day1/example"
-	inputFile   = "./internal/year2024/day1/input"
+	exampleFile = "./internal/year2024/day1/example.txt"
+	inputFile   = "./internal/year2024/day1/input.txt"
 )
 
 type occurrences [][2]int64

@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	exampleFile        = "./internal/year2024/day7/example"
-	inputFile          = "./internal/year2024/day7/input"
+	exampleFile        = "./internal/year2024/day7/example.txt"
+	inputFile          = "./internal/year2024/day7/input.txt"
 	plus        symbol = '+'
 	multi       symbol = '*'
 	concatenate symbol = '|'

@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-const testFilename = "./input"
+const testFilename = "./input.txt"
 
 func Test_Solve(t *testing.T) {
 	s1, s2, err := solve(testFilename)

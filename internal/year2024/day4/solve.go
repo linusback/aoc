@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	exampleFile = "./internal/year2024/day4/example"
-	inputFile   = "./internal/year2024/day4/input"
+	exampleFile = "./internal/year2024/day4/example.txt"
+	inputFile   = "./internal/year2024/day4/input.txt"
 	mas         = "MAS"
 	amx         = "SAM"
 )

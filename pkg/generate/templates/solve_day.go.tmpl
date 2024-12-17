@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/linusback/aoc2024/pkg/generate.DayData*/ -}}
+{{- /*gotype: github.com/linusback/aoc/pkg/generate.DayData*/ -}}
 package day{{.Day}}
 
 import (
@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	exampleFile = "./internal/year{{.Year}}/day{{.Day}}/example"
-	inputFile   = "./internal/year{{.Year}}/day{{.Day}}/input"
+	exampleFile = "./internal/year{{.Year}}/day{{.Day}}/{{.ExampleFile}}"
+	inputFile   = "./internal/year{{.Year}}/day{{.Day}}/{{.InputFile}}"
 )
 
 func Solve() (solution1, solution2 string, err error) {

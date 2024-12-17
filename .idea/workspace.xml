@@ -6,8 +6,19 @@
   <component name="ChangeListManager">
     <list default="true" id="faa4269d-e41a-4e00-b41f-ba3349802545" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/day1/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/day1/solve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/day2/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/day2/solve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/day3/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/day3/solve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/day4/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/day4/solve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/day5/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/day5/solve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/day6/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/day6/solve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/day6/solve_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/day6/solve_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/day7/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/day7/solve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/day8/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/day8/solve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/day9/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/day9/solve.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/year2024/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/solve.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/util/slicex.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/slicex.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/aoc/aoc.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/aoc/aoc.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/file/filenames.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/file/filenames.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -166,12 +177,23 @@
       <workItem from="1734084590256" duration="1472000" />
       <workItem from="1734113184072" duration="2481000" />
       <workItem from="1734270113602" duration="7037000" />
-      <workItem from="1734309364673" duration="5524000" />
+      <workItem from="1734309364673" duration="8289000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
