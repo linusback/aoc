@@ -30,6 +30,7 @@ const (
 const (
 	ErrCouldNotFindSessionCookie errorsx.SimpleError = "could not find session cookie"
 	ErrWrongAnswer               errorsx.SimpleError = "that's not the right answer"
+	ErrCouldNotFinsExample       errorsx.SimpleError = "could not extract example.txt from puzzle.md"
 )
 
 var (
@@ -38,6 +39,7 @@ var (
 	answerWrongMsg      = []byte(`That's not the right answer`)
 	answerToRecentlyMsg = []byte(`You gave an answer too recently`)
 	answerCorrectMsg    = []byte(`That's the right answer!`)
+	exampleRegExp       *regexp.Regexp
 )
 
 func Send(part Part, year, day, answer string) error {
@@ -45,8 +47,7 @@ func Send(part Part, year, day, answer string) error {
 		log.Printf("empty answer part %s, skipping...\n", part)
 		return nil
 	}
-
-	answerFile := fmt.Sprintf("./internal/year%s/day%s/%s", year, day, AnswerFile(part))
+	answerFile := fmt.Sprintf("./internal/year%s/day%s/%s", year, day, answerFile(part))
 	exists, err := util.FileExists(answerFile)
 	if err != nil {
 		return err
@@ -186,7 +187,8 @@ func download(client *http.Client, year, day string) error {
 	wg := new(sync.WaitGroup)
 	if !puzzleFound {
 		log.Printf("generating internal/year%s/day%s/%s\n", year, day, filenames.PuzzleFile)
-		downloadFileAsync(wg, errCh, client, year, day, location, filenames.PuzzleFile, "", parseHtmlToMarkdown)
+		exampleFile := location + filenames.ExampleFile
+		downloadFileAsync(wg, errCh, client, year, day, location, filenames.PuzzleFile, "", parseHtmlToMarkdown(exampleFile))
 	} else {
 		log.Printf("internal/year%s/day%s/%s: file already exists skipping...\n", year, day, filenames.PuzzleFile)
 	}
@@ -207,7 +209,7 @@ func download(client *http.Client, year, day string) error {
 
 func reDownloadPuzzle(client *http.Client, year, day string) error {
 	location := fmt.Sprintf("./internal/year%s/day%s/", year, day)
-	err := downloadFile(client, year, day, location, filenames.PuzzleFile, "", parseHtmlToMarkdown)
+	err := downloadFile(client, year, day, location, filenames.PuzzleFile, "", parseHtmlToMarkdown(""))
 	if err != nil {
 		return err
 	}
@@ -291,22 +293,32 @@ func downloadFile(client *http.Client, year, day, location, file, endpoint strin
 	return nil
 }
 
-func parseHtmlToMarkdown(w io.Writer, r io.Reader) (int64, error) {
-	reg, err := regexp.Compile("(?i)(?s)<main>(?P<main>.*)</main>")
-	if err != nil {
-		return 0, err
+func parseHtmlToMarkdown(exampleFile string) func(io.Writer, io.Reader) (int64, error) {
+	return func(w io.Writer, r io.Reader) (int64, error) {
+		reg, err := regexp.Compile("(?i)(?s)<main>(?P<main>.*)</main>")
+		if err != nil {
+			return 0, err
+		}
+		by, err := io.ReadAll(r)
+		if err != nil {
+			return 0, err
+		}
+		by, err = htmltomarkdown.ConvertReader(bytes.NewReader(reg.Find(by)),
+			converter.WithDomain("https://adventofcode.com/"))
+		if err != nil {
+			return 0, err
+		}
+		// maybe try parsing looking for example use this regex "For example:\s*```[\s]?([^`]*)```"
+		if len(exampleFile) > 0 {
+			err = writeExampleFile(exampleFile, by)
+			if err != nil {
+				log.Printf("warning: unable to extract example from puzzle.md please fill out manualy")
+				err = nil
+			}
+		}
+
+		return io.Copy(w, bytes.NewReader(by))
 	}
-	by, err := io.ReadAll(r)
-	if err != nil {
-		return 0, err
-	}
-	by, err = htmltomarkdown.ConvertReader(bytes.NewReader(reg.Find(by)),
-		converter.WithDomain("https://adventofcode.com/"))
-	if err != nil {
-		return 0, err
-	}
-	// maybe try parsing looking for example use this regex "For example:\s*```[\s]?([^`]*)```"
-	return io.Copy(w, bytes.NewReader(by))
 }
 
 func getSessionCookie() (string, error) {
@@ -370,7 +382,38 @@ func filesAlreadyExists(dir string) (inputFound, puzzleFound bool, err error) {
 	return
 }
 
-func AnswerFile(part Part) string {
+func writeExampleFile(filename string, b []byte) (err error) {
+	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0664)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	b, err = getExampleFromPuzzleFile(b)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(f, bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func getExampleFromPuzzleFile(b []byte) (res []byte, err error) {
+	if exampleRegExp == nil {
+		exampleRegExp, err = regexp.Compile("(?i)for example:\\s*```\\s?([^`]*)```")
+		if err != nil {
+			return nil, err
+		}
+	}
+	sub := exampleRegExp.FindSubmatch(b)
+	if len(sub) < 2 {
+		return nil, ErrCouldNotFinsExample
+	}
+	return sub[1], nil
+}
+
+func answerFile(part Part) string {
 	switch part {
 	case Part1:
 		return filenames.Answer1

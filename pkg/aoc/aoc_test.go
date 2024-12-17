@@ -2,6 +2,7 @@ package aoc
 
 import (
 	"bytes"
+	"fmt"
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"regexp"
 	"strings"
@@ -63,6 +64,15 @@ func Benchmark_ConvertOnlyMain(b *testing.B) {
 //	}
 //}
 
+func Test_getExampleFromPuzzleFile(t *testing.T) {
+	b, err := getExampleFromPuzzleFile(testMarkdownBytes)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(string(testMarkdownBytes))
+	t.Log(string(b))
+}
+
 func Test_RegexConvert(t *testing.T) {
 	reg, err := regexp.Compile("(?i)(?s)<main>(?P<main>.*)</main>")
 	if err != nil {
@@ -78,7 +88,21 @@ func Test_RegexConvert(t *testing.T) {
 }
 
 var (
-	testHtmlBytes = []byte(testHtml)
+	testHtmlBytes     = []byte(testHtml)
+	testMarkdownBytes = []byte(fmt.Sprintf(`
+For example:
+
+%s
+3   4
+4   3
+2   5
+1   3
+3   9
+3   3
+%s
+
+Maybe the lists are only off by a small amount! To find out, pair up the numbers and measure how far apart they are. Pair up the *smallest number in the left list* with the *smallest number in the right list*, then the *second-smallest left number* with the *second-smallest right number*, and so on.
+`, "```", "```"))
 	testMainBytes = []byte(`<article class="day-desc"><h2>--- Day 1: Historian Hysteria ---</h2><p>The <em>Chief Historian</em> is always present for the big Christmas sleigh launch, but nobody has seen him in months! Last anyone heard, he was visiting locations that are historically significant to the North Pole; a group of Senior Historians has asked you to accompany them as they check the places they think he was most likely to visit.</p>
 <p>As each location is checked, they will mark it on their list with a <em class="star">star</em>. They figure the Chief Historian <em>must</em> be in one of the first fifty places they'll look, so in order to save Christmas, you need to help them get <em class="star">fifty stars</em> on their list before Santa takes off on December 25th.</p>
 <p>Collect stars by solving puzzles.  Two puzzles will be made available on each day in the Advent calendar; the second puzzle is unlocked when you complete the first.  Each puzzle grants <em class="star">one star</em>. Good luck!</p>
