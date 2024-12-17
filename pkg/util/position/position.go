@@ -67,6 +67,7 @@ type Positioner[P Position] interface {
 	Add(P) P
 	Sub(P) P
 	NewDir(y, x int8) P
+	New(x, y int) P
 }
 
 type PosMap[P Position] struct {
@@ -86,6 +87,10 @@ func New8Negative(y, x int8) Pos8 {
 
 func (Pos8) NewDir(y, x int8) Pos8 {
 	return New8Negative(y, x)
+}
+
+func (Pos8) New(y, x int) Pos8 {
+	return New8(uint8(y), uint8(x))
 }
 
 func (p Pos8) Y() uint8 {
@@ -138,6 +143,10 @@ func (Pos16) NewDir(y, x int8) Pos16 {
 	return New16Negative(int16(y), int16(x))
 }
 
+func (Pos16) New(y, x int) Pos16 {
+	return New16(uint16(y), uint16(x))
+}
+
 func (p Pos16) Y() uint16 {
 	return uint16(p >> 8)
 }
@@ -186,6 +195,10 @@ func New32Negative(y, x int32) Pos32 {
 
 func (Pos32) NewDir(y, x int8) Pos32 {
 	return New32Negative(int32(y), int32(x))
+}
+
+func (Pos32) New(y, x int) Pos32 {
+	return New32(uint32(y), uint32(x))
 }
 
 func (p Pos32) Y() uint32 {
@@ -241,6 +254,10 @@ func NewNegative(y, x int64) Pos {
 
 func (Pos) NewDir(y, x int8) Pos {
 	return NewNegative(int64(y), int64(x))
+}
+
+func (Pos) New(y, x int) Pos {
+	return New(int64(y), int64(x))
 }
 
 func (p Pos) IsInside(maxPos Pos) bool {
