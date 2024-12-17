@@ -2,6 +2,7 @@ package position
 
 import (
 	"fmt"
+	"log"
 	"testing"
 )
 
@@ -29,5 +30,10 @@ func Test_Pos8_String(t *testing.T) {
 	fmt.Printf("%v\n", p)
 	fmt.Printf("%+v\n", p)
 	fmt.Printf("%#v\n", p)
+}
 
+func TestPos_AddSelf(t *testing.T) {
+	p := New(1, 1)
+	p.AddSelf(New(2, 2))
+	log.Println(p)
 }

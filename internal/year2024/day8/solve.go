@@ -58,25 +58,25 @@ func calculateAntiNodes(antenna byte, v []position.Pos8, posMax position.Pos8, m
 	//fmt.Printf("checking %v\n", v)
 	for i, p1 := range v[:len(v)-1] {
 		for _, p2 := range v[i+1:] {
-			diff = position.Sub8(p1, p2)
+			diff = p1.Sub(p2)
 
-			antiNode = position.Add8(p1, diff)
+			antiNode = p1.Add(diff)
 			if antiNode.IsInside(posMax) {
 				m[antiNode] = struct{}{}
 			}
 			for antiNode.IsInside(posMax) {
 				m2[antiNode] = struct{}{}
-				antiNode.Add(diff)
+				antiNode.AddSelf(diff)
 			}
 
-			antiNode = position.Sub8(p2, diff)
+			antiNode = p2.Sub(diff)
 			if antiNode.IsInside(posMax) {
 				m[antiNode] = struct{}{}
 			}
 
 			for antiNode.IsInside(posMax) {
 				m2[antiNode] = struct{}{}
-				antiNode.Sub(diff)
+				antiNode.SubSelf(diff)
 			}
 		}
 	}
