@@ -5,14 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="faa4269d-e41a-4e00-b41f-ba3349802545" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/pkg/util/input.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/input.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/year2024/solve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/year2024/solve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/util/slicex.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/slicex.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="GOROOT" url="file://$USER_HOME$/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.23.3.linux-amd64" />
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
+  </component>
+  <component name="GOROOT" url="file:///usr/local/go" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -20,12 +29,24 @@
   &quot;associatedIndex&quot;: 6
 }</component>
   <component name="ProjectId" id="2pmE3V9QhPbmwIUxnvJxXmgCHVx" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+    &quot;Go Build.go build scratch_16.go.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.Test_Combinate in github.com/linusback/aoc/pkg/util.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.Test_Combinate2 in github.com/linusback/aoc/pkg/util.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.Test_Day5_Solve in github.com/linusback/aoc/internal/year2024/day5.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.Test_Pos8_Add in github.com/linusback/aoc/pkg/util/position.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.Test_Pos8_String in github.com/linusback/aoc/pkg/util/position.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.Test_Solve in github.com/linusback/aoc/internal/year2024/day6.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.Test_utf in github.com/linusback/aoc/internal/year2024/day8.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
@@ -39,10 +60,11 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.goide.configuration.GoLibrariesConfigurableProvider&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Go Build.go build scratch_16.go">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="aoc" />
       <working_directory value="$PROJECT_DIR$" />
@@ -50,6 +72,62 @@
       <kind value="FILE" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go build scratch_16.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="aoc" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="FILE" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$APPLICATION_CONFIG_DIR$/scratches/scratch_16.go" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Test_Combinate2 in github.com/linusback/aoc/pkg/util" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="aoc" />
+      <working_directory value="$PROJECT_DIR$/pkg/util" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/linusback/aoc/pkg/util" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTest_Combinate2\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Test_Pos8_Add in github.com/linusback/aoc/pkg/util/position" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="aoc" />
+      <working_directory value="$PROJECT_DIR$/pkg/util/position" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/linusback/aoc/pkg/util/position" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTest_Pos8_Add\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Test_Pos8_String in github.com/linusback/aoc/pkg/util/position" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="aoc" />
+      <working_directory value="$PROJECT_DIR$/pkg/util/position" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/linusback/aoc/pkg/util/position" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTest_Pos8_String\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Test_utf in github.com/linusback/aoc/internal/year2024/day8" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="aoc" />
+      <working_directory value="$PROJECT_DIR$/internal/year2024/day8" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/linusback/aoc/internal/year2024/day8" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTest_utf\E$" />
       <method v="2" />
     </configuration>
     <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
@@ -62,6 +140,15 @@
       <framework value="gotest" />
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Go Build.go build scratch_16.go" />
+        <item itemvalue="Go Test.Test_utf in github.com/linusback/aoc/internal/year2024/day8" />
+        <item itemvalue="Go Test.Test_Pos8_String in github.com/linusback/aoc/pkg/util/position" />
+        <item itemvalue="Go Test.Test_Pos8_Add in github.com/linusback/aoc/pkg/util/position" />
+        <item itemvalue="Go Test.Test_Combinate2 in github.com/linusback/aoc/pkg/util" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -73,6 +160,13 @@
       <updated>1733362651981</updated>
       <workItem from="1733362653010" duration="573000" />
       <workItem from="1733398787812" duration="1399000" />
+      <workItem from="1733490670557" duration="73612000" />
+      <workItem from="1733718497592" duration="739000" />
+      <workItem from="1733719985689" duration="4843000" />
+      <workItem from="1734084590256" duration="1472000" />
+      <workItem from="1734113184072" duration="2481000" />
+      <workItem from="1734270113602" duration="7037000" />
+      <workItem from="1734309364673" duration="5524000" />
     </task>
     <servers />
   </component>
@@ -81,5 +175,9 @@
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

@@ -16,6 +16,16 @@ func Repeat[E any](n int, e E) []E {
 	return res
 }
 
+func AppendRepeat[S ~[]E, E any](s S, n int, e E) []E {
+	if n < 0 {
+		panic("cannot be negative")
+	}
+	for range n {
+		s = append(s, e)
+	}
+	return s
+}
+
 func ToKeysSeq2[S ~[]K, K comparable, V any](s S, v V) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		for _, k := range s {
