@@ -49,6 +49,25 @@ func AppendUnique[S ~[]E, E comparable](s S, e ...E) S {
 	return append(s, toAppend...)
 }
 
+func Unique[S ~[]E, E comparable](s S) (res S) {
+	res = make(S, 0, len(s))
+	for _, e := range s {
+		if !slices.Contains(res, e) {
+			res = append(res, e)
+		}
+	}
+	return res
+}
+
+func LenUnique[S ~[]E, E comparable](s S) (res int) {
+	for i, e := range s {
+		if !slices.Contains(s[:i], e) {
+			res++
+		}
+	}
+	return res
+}
+
 func AppendUniqueFunc[S ~[]E, E comparable](s S, cmp func(E) bool, e ...E) S {
 	switch len(e) {
 	case 0:

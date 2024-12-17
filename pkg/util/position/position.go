@@ -5,6 +5,15 @@ import (
 	"math"
 )
 
+var (
+	Directions8 = [...]Pos8{
+		New8Negative(-1, 0), // up
+		New8Negative(0, 1),  // right
+		New8Negative(1, 0),  // down
+		New8Negative(0, -1), // left
+	}
+)
+
 type Pos8 uint16
 
 func New8(y, x uint8) Pos8 {
