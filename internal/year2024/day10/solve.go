@@ -3,7 +3,6 @@ package day10
 import (
 	"github.com/linusback/aoc/pkg/util"
 	"github.com/linusback/aoc/pkg/util/position"
-	"log"
 	"math"
 	"strconv"
 )
@@ -59,7 +58,6 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	part1, part2 := findPaths(starts)
 	solution1 = strconv.FormatInt(part1, 10)
 	solution2 = strconv.FormatInt(part2, 10)
-	log.Println("part2: ", part2)
 	return
 }
 
@@ -79,7 +77,7 @@ func findPath(pos position.Pos8, val int8, ends []position.Pos8) []position.Pos8
 	if val == 9 {
 		return append(ends, pos)
 	}
-	for _, dir := range position.DirectionsPos8 {
+	for _, dir := range position.DirectionsPos8[:position.Dir_UpRight] {
 		next := pos.Add(dir)
 		if next.IsInside(tMap.MaxPos) && tMap.Map[next] == val+1 {
 			ends = findPath(next, val+1, ends)

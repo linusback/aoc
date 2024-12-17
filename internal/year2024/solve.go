@@ -3,6 +3,7 @@ package year2024
 import (
 	"github.com/linusback/aoc/internal/year2024/day1"
 	"github.com/linusback/aoc/internal/year2024/day10"
+	"github.com/linusback/aoc/internal/year2024/day11"
 	"github.com/linusback/aoc/internal/year2024/day2"
 	"github.com/linusback/aoc/internal/year2024/day3"
 	"github.com/linusback/aoc/internal/year2024/day4"
@@ -38,6 +39,8 @@ func Solve(day string) (solution1, solution2 string, err error) {
 		return day9.Solve()
 	case "10":
 		return day10.Solve()
+	case "11":
+		return day11.Solve()
 	default:
 		err = errorsx.NewSolverError(year, day, errorsx.ErrDayNotCreated)
 		return

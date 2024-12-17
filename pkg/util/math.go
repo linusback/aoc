@@ -85,3 +85,50 @@ func PowerInt(x, y int) int {
 	by := big.NewInt(int64(y))
 	return int(bx.Exp(bx, by, nil).Int64())
 }
+
+func CountDigits(u uint64) uint64 {
+	// 18446744073709551615 <- max amount
+	switch {
+	case u >= 10_000_000_000_000_000_000:
+		return 20
+	case u >= 10_000_000_000_000_000_00:
+		return 19
+	case u >= 10_000_000_000_000_000_0:
+		return 18
+	case u >= 10_000_000_000_000_000:
+		return 17
+	case u >= 10_000_000_000_000_00:
+		return 16
+	case u >= 10_000_000_000_000_0:
+		return 15
+	case u >= 10_000_000_000_000:
+		return 14
+	case u >= 10_000_000_000_00:
+		return 13
+	case u >= 10_000_000_000_0:
+		return 12
+	case u >= 10_000_000_000:
+		return 11
+	case u >= 10_000_000_00:
+		return 10
+	case u >= 10_000_000_0:
+		return 9
+	case u >= 10_000_000:
+		return 8
+	case u >= 10_000_00:
+		return 7
+	case u >= 10_000_0:
+		return 6
+	case u >= 10_000:
+		return 5
+	case u >= 10_00:
+		return 4
+	case u >= 10_0:
+		return 3
+	case u >= 10:
+		return 2
+	default:
+		return 1
+	}
+	//18 446 744 073 709 551 615
+}
