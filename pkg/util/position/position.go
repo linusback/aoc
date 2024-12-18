@@ -7,16 +7,19 @@ import (
 
 type Dir uint
 
+//goland:noinspection GoSnakeCaseUsage
 const (
 	Dir_Up Dir = iota
 	Dir_Right
 	Dir_Down
 	Dir_Left
-	Dir_UpRight
 	Dir_UpLeft
+	Dir_UpRight
 	Dir_DownRight
 	Dir_DownLeft
 )
+
+type Collection[P Position] [4]P
 
 var (
 	directions = [...]Dir{
@@ -24,15 +27,19 @@ var (
 		Dir_Right,
 		Dir_Down,
 		Dir_Left,
-		Dir_UpRight,
 		Dir_UpLeft,
+		Dir_UpRight,
 		Dir_DownRight,
 		Dir_DownLeft,
 	}
-	DirectionsPos8  = createDirections[Pos8]()
-	DirectionsPos16 = createDirections[Pos16]()
-	DirectionsPos32 = createDirections[Pos32]()
-	DirectionsPos   = createDirections[Pos]()
+	DirectionsPos8          Collection[Pos8]  = createDirections[Pos8]()
+	DirectionsPos16         Collection[Pos16] = createDirections[Pos16]()
+	DirectionsPos32         Collection[Pos32] = createDirections[Pos32]()
+	DirectionsPos           Collection[Pos]   = createDirections[Pos]()
+	DirectionsDiagonalPos8  Collection[Pos8]  = createDiagonalDirections[Pos8]()
+	DirectionsDiagonalPos16 Collection[Pos16] = createDiagonalDirections[Pos16]()
+	DirectionsDiagonalPos32 Collection[Pos32] = createDiagonalDirections[Pos32]()
+	DirectionsDiagonalPos   Collection[Pos]   = createDiagonalDirections[Pos]()
 )
 
 func (d Dir) Pos() (y, x int8) {
@@ -45,10 +52,10 @@ func (d Dir) Pos() (y, x int8) {
 		return 1, 0
 	case Dir_Left:
 		return 0, -1
-	case Dir_UpRight:
-		return -1, 1
 	case Dir_UpLeft:
 		return -1, -1
+	case Dir_UpRight:
+		return -1, 1
 	case Dir_DownRight:
 		return 1, 1
 	case Dir_DownLeft:
@@ -290,7 +297,59 @@ func (p *Pos) SubSelf(o Pos) {
 	p.x -= o.x
 }
 
-func createDirections[E Position]() (res [8]E) {
+func CreateDirections[E Position](dir ...Dir) (res []E) {
+	if len(dir) == 0 {
+		return nil
+	}
+	var (
+		e    E
+		x, y int8
+	)
+	p, ok := any(e).(Positioner[E])
+	if !ok {
+		panic("create directions: Position needs to implement Positioner[Position]")
+	}
+	res = make([]E, len(dir))
+	for i, d := range dir {
+		x, y = d.Pos()
+		res[i] = p.NewDir(x, y)
+	}
+	return res
+}
+
+func createDirections[E Position]() (res [4]E) {
+	var (
+		e    E
+		x, y int8
+	)
+	p, ok := any(e).(Positioner[E])
+	if !ok {
+		panic("create directions: Position needs to implement Positioner[Position]")
+	}
+	for _, d := range directions[:4] {
+		x, y = d.Pos()
+		res[d] = p.NewDir(x, y)
+	}
+	return res
+}
+
+func createDiagonalDirections[E Position]() (res [4]E) {
+	var (
+		e    E
+		x, y int8
+	)
+	p, ok := any(e).(Positioner[E])
+	if !ok {
+		panic("create directions: Position needs to implement Positioner[Position]")
+	}
+	for i, d := range directions[4:] {
+		x, y = d.Pos()
+		res[i] = p.NewDir(x, y)
+	}
+	return res
+}
+
+func createAllDirections[E Position]() (res [8]E) {
 	var (
 		e    E
 		x, y int8

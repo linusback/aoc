@@ -3,8 +3,14 @@ package util
 import (
 	"bufio"
 	"errors"
+	"github.com/linusback/aoc/pkg/errorsx"
 	"io"
 	"os"
+	"slices"
+)
+
+var (
+	ErrUnsupportedPositionType errorsx.SimpleError = "type is not supported"
 )
 
 type (
@@ -14,28 +20,44 @@ type (
 	MultiExecFunc func(*bufio.Reader, int, MultiRowFunc, ...MultiRowFunc) error
 )
 
-type Indexer[P interface{ ~uint16 | ~uint32 | ~uint64 }] interface {
+type Pos[P interface{ ~uint16 | ~uint32 | ~uint64 }] interface {
 	New(y, x int) P
+	IsInside(P) bool
 }
 
-type PositionMap[T any, P interface{ ~uint16 | ~uint32 | ~uint64 }] struct {
-	Map    []T
-	MaxPos P
+type PositionMap[P interface{ ~uint16 | ~uint32 | ~uint64 }, T any] struct {
+	Map       []T
+	Positions []P
+	MaxPos    P
 }
 
-func ToMapOfPositionsByte[P interface{ ~uint16 | ~uint32 | ~uint64 }](filename string, pos Indexer[P]) (posMap *PositionMap[byte, P], err error) {
-	return ToMapOfPositions(filename, pos, func(b byte) byte {
+func (p PositionMap[P, T]) HasInside(pos Pos[P]) bool {
+	return pos.IsInside(p.MaxPos)
+}
+
+func (p PositionMap[P, T]) Contains(pos P) bool {
+	return slices.Contains(p.Positions, pos)
+}
+
+func ToMapOfPositionsByte[T Pos[P], P interface{ ~uint16 | ~uint32 | ~uint64 }](filename string) (posMap *PositionMap[P, byte], err error) {
+	return ToMapOfPositions[T, P, byte](filename, func(b byte) byte {
 		return b
 	})
 }
 
-func ToMapOfPositions[P interface{ ~uint16 | ~uint32 | ~uint64 }, T any](filename string, pos Indexer[P], transform func(byte) T) (posMap *PositionMap[T, P], err error) {
+func ToMapOfPositions[T Pos[P], P interface{ ~uint16 | ~uint32 | ~uint64 }, V any](filename string, transform func(byte) V) (posMap *PositionMap[P, V], err error) {
 	var (
 		y, x int
 		row  []byte
 		b    byte
+		zero T
 	)
-	posMap = new(PositionMap[T, P])
+
+	//goland:noinspection GoDfaConstantCondition
+	//if zero == nil {
+	//	panic("zero value should not be nil")
+	//}
+	posMap = new(PositionMap[P, V])
 	data := make([][]byte, 0, 255)
 	err = DoEachRowFile(filename, func(row []byte, nr int) error {
 		if nr == 0 {
@@ -48,11 +70,14 @@ func ToMapOfPositions[P interface{ ~uint16 | ~uint32 | ~uint64 }, T any](filenam
 	if err != nil {
 		return nil, err
 	}
-	posMap.MaxPos = pos.New(y, x)
-	posMap.Map = make([]T, posMap.MaxPos+1)
+	posMap.MaxPos = zero.New(y, x)
+	posMap.Map = make([]V, posMap.MaxPos+1)
+	var pos P
 	for y, row = range data {
 		for x, b = range row {
-			posMap.Map[pos.New(y, x)] = transform(b)
+			pos = zero.New(y, x)
+			posMap.Positions = append(posMap.Positions, pos)
+			posMap.Map[pos] = transform(b)
 		}
 	}
 	return posMap, nil

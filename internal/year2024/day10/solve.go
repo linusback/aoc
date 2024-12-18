@@ -77,7 +77,7 @@ func findPath(pos position.Pos8, val int8, ends []position.Pos8) []position.Pos8
 	if val == 9 {
 		return append(ends, pos)
 	}
-	for _, dir := range position.DirectionsPos8[:position.Dir_UpRight] {
+	for _, dir := range position.DirectionsPos8 {
 		next := pos.Add(dir)
 		if next.IsInside(tMap.MaxPos) && tMap.Map[next] == val+1 {
 			ends = findPath(next, val+1, ends)
