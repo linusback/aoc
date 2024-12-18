@@ -42,6 +42,23 @@ var (
 	DirectionsDiagonalPos   Collection[Pos]   = createDiagonalDirections[Pos]()
 )
 
+type Position interface {
+	Pos8 | Pos16 | Pos32 | Pos
+}
+
+type Positioner[P Position] interface {
+	IsInside(P) bool
+	Add(P) P
+	Sub(P) P
+	NewDir(y, x int8) P
+	New(x, y int) P
+}
+
+type PosMap[P Position] struct {
+	Map    []P
+	MaxPos P
+}
+
 func (d Dir) Pos() (y, x int8) {
 	switch d {
 	case Dir_Up:
@@ -65,21 +82,8 @@ func (d Dir) Pos() (y, x int8) {
 	}
 }
 
-type Position interface {
-	Pos8 | Pos16 | Pos32 | Pos
-}
+func (c Collection[P]) AddTo() {
 
-type Positioner[P Position] interface {
-	IsInside(P) bool
-	Add(P) P
-	Sub(P) P
-	NewDir(y, x int8) P
-	New(x, y int) P
-}
-
-type PosMap[P Position] struct {
-	Map    []P
-	MaxPos P
 }
 
 type Pos8 uint16

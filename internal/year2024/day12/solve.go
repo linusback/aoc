@@ -34,7 +34,7 @@ type gardenRegion struct {
 }
 
 type gardenMapType struct {
-	util.PositionMap[position.Pos8, byte]
+	util.PositionMap[position.Pos8, position.Pos8, byte]
 	visited []position.Pos8
 	regions []*gardenRegion
 }

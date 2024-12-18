@@ -20,44 +20,49 @@ type (
 	MultiExecFunc func(*bufio.Reader, int, MultiRowFunc, ...MultiRowFunc) error
 )
 
-type Pos[P interface{ ~uint16 | ~uint32 | ~uint64 }] interface {
-	New(y, x int) P
-	IsInside(P) bool
+type UnsignedPos interface {
+	~uint16 | ~uint32 | ~uint64
 }
 
-type PositionMap[P interface{ ~uint16 | ~uint32 | ~uint64 }, T any] struct {
+type Pos[U UnsignedPos] interface {
+	~uint16 | ~uint32 | ~uint64
+	New(y, x int) U
+	IsInside(U) bool
+}
+
+type PositionMap[P Pos[U], U UnsignedPos, T any] struct {
 	Map       []T
-	Positions []P
-	MaxPos    P
+	Positions []U
+	MaxPos    U
 }
 
-func (p PositionMap[P, T]) HasInside(pos Pos[P]) bool {
+func (p PositionMap[P, E, T]) HasInside(pos P) bool {
 	return pos.IsInside(p.MaxPos)
 }
 
-func (p PositionMap[P, T]) Contains(pos P) bool {
+func (p PositionMap[P, E, T]) Contains(pos E) bool {
 	return slices.Contains(p.Positions, pos)
 }
 
-func ToMapOfPositionsByte[T Pos[P], P interface{ ~uint16 | ~uint32 | ~uint64 }](filename string) (posMap *PositionMap[P, byte], err error) {
-	return ToMapOfPositions[T, P, byte](filename, func(b byte) byte {
+func ToMapOfPositionsByte[P Pos[U], U UnsignedPos](filename string) (posMap *PositionMap[P, U, byte], err error) {
+	return ToMapOfPositions[P, U, byte](filename, func(b byte) byte {
 		return b
 	})
 }
 
-func ToMapOfPositions[T Pos[P], P interface{ ~uint16 | ~uint32 | ~uint64 }, V any](filename string, transform func(byte) V) (posMap *PositionMap[P, V], err error) {
+func ToMapOfPositions[P Pos[U], U UnsignedPos, V any](filename string, transform func(byte) V) (posMap *PositionMap[P, U, V], err error) {
 	var (
 		y, x int
 		row  []byte
 		b    byte
-		zero T
+		zero P
 	)
 
 	//goland:noinspection GoDfaConstantCondition
 	//if zero == nil {
 	//	panic("zero value should not be nil")
 	//}
-	posMap = new(PositionMap[P, V])
+	posMap = new(PositionMap[P, U, V])
 	data := make([][]byte, 0, 255)
 	err = DoEachRowFile(filename, func(row []byte, nr int) error {
 		if nr == 0 {
@@ -72,7 +77,7 @@ func ToMapOfPositions[T Pos[P], P interface{ ~uint16 | ~uint32 | ~uint64 }, V an
 	}
 	posMap.MaxPos = zero.New(y, x)
 	posMap.Map = make([]V, posMap.MaxPos+1)
-	var pos P
+	var pos U
 	for y, row = range data {
 		for x, b = range row {
 			pos = zero.New(y, x)
