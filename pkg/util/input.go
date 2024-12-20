@@ -57,7 +57,7 @@ func (p PositionMap[P, E, T]) Contains(pos E) bool {
 
 func (p PositionMap[P, E, T]) String() string {
 	var sb strings.Builder
-	sb.WriteString("{\n")
+	sb.WriteString("{")
 	sb.WriteString(p.MapString())
 	sb.WriteString(fmt.Sprintf("\n\tMax: %v", p.MaxPos))
 	sb.WriteString(fmt.Sprintf("\n\tPos: %v\n}", p.Positions))
@@ -70,7 +70,7 @@ func (p PositionMap[P, E, T]) MapString() string {
 		t       T
 		lastPos E
 	)
-	sb.WriteString("\tMap: ")
+	sb.WriteString("\n\tMap: ")
 	for _, pos := range p.Positions {
 		if pos > lastPos+1 {
 			sb.WriteString("\n\t     ")
