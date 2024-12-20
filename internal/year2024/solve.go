@@ -10,7 +10,10 @@ import (
 	"github.com/linusback/aoc/internal/year2024/day15"
 	"github.com/linusback/aoc/internal/year2024/day16"
 	"github.com/linusback/aoc/internal/year2024/day17"
+	"github.com/linusback/aoc/internal/year2024/day18"
+	"github.com/linusback/aoc/internal/year2024/day19"
 	"github.com/linusback/aoc/internal/year2024/day2"
+	"github.com/linusback/aoc/internal/year2024/day20"
 	"github.com/linusback/aoc/internal/year2024/day3"
 	"github.com/linusback/aoc/internal/year2024/day4"
 	"github.com/linusback/aoc/internal/year2024/day5"
@@ -59,6 +62,12 @@ func Solve(day string) (solution1, solution2 string, err error) {
 		return day16.Solve()
 	case "17":
 		return day17.Solve()
+	case "18":
+		return day18.Solve()
+	case "19":
+		return day19.Solve()
+	case "20":
+		return day20.Solve()
 	default:
 		err = errorsx.NewSolverError(year, day, errorsx.ErrDayNotCreated)
 		return

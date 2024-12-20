@@ -47,7 +47,7 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	if err != nil {
 		return
 	}
-	gardenMap.PositionMap = *posMap
+	gardenMap.PositionMap = posMap
 	gardenMap.visited = make([]position.Pos8, 0, len(gardenMap.Positions))
 	gardenMap.regions = make([]*gardenRegion, 0, len(gardenMap.Positions)/4)
 	for _, pos := range gardenMap.Positions {

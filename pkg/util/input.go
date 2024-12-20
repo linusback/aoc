@@ -3,10 +3,12 @@ package util
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"github.com/linusback/aoc/pkg/errorsx"
 	"io"
 	"os"
 	"slices"
+	"strings"
 )
 
 var (
@@ -22,6 +24,15 @@ type (
 
 type UnsignedPos interface {
 	~uint16 | ~uint32 | ~uint64
+}
+
+type Coordinate interface {
+	uint8 | uint16 | uint32
+}
+
+type Coordinater[C Coordinate] interface {
+	Y() C
+	X() C
 }
 
 type Pos[U UnsignedPos] interface {
@@ -44,13 +55,47 @@ func (p PositionMap[P, E, T]) Contains(pos E) bool {
 	return slices.Contains(p.Positions, pos)
 }
 
-func ToMapOfPositionsByte[P Pos[U], U UnsignedPos](filename string) (posMap *PositionMap[P, U, byte], err error) {
-	return ToMapOfPositions[P, U, byte](filename, func(b byte) byte {
-		return b
-	})
+func (p PositionMap[P, E, T]) String() string {
+	var sb strings.Builder
+	sb.WriteString("{\n")
+	sb.WriteString(p.MapString())
+	sb.WriteString(fmt.Sprintf("\n\tMax: %v", p.MaxPos))
+	sb.WriteString(fmt.Sprintf("\n\tPos: %v\n}", p.Positions))
+	return sb.String()
 }
 
-func ToMapOfPositions[P Pos[U], U UnsignedPos, V any](filename string, transform func(byte) V) (posMap *PositionMap[P, U, V], err error) {
+func (p PositionMap[P, E, T]) MapString() string {
+	var (
+		sb      strings.Builder
+		t       T
+		lastPos E
+	)
+	sb.WriteString("\tMap: ")
+	for _, pos := range p.Positions {
+		if pos > lastPos+1 {
+			sb.WriteString("\n\t     ")
+		}
+		t = p.Map[pos]
+		switch v := any(t).(type) {
+		case uint8:
+			sb.WriteByte(v)
+		default:
+			sb.WriteString(fmt.Sprintf("%v", t))
+		}
+		lastPos = pos
+	}
+	return sb.String()
+}
+
+func Identity[T any](t T) T {
+	return t
+}
+
+func ToMapOfPositionsByte[P Pos[U], U UnsignedPos](filename string, extra ...RowFunc) (posMap PositionMap[P, U, byte], err error) {
+	return ToMapOfPositions[P](filename, Identity, extra...)
+}
+
+func ToMapOfPositions[P Pos[U], U UnsignedPos, V any](filename string, transform func(byte) V, extra ...RowFunc) (posMap PositionMap[P, U, V], err error) {
 	var (
 		y, x int
 		row  []byte
@@ -62,7 +107,6 @@ func ToMapOfPositions[P Pos[U], U UnsignedPos, V any](filename string, transform
 	//if zero == nil {
 	//	panic("zero value should not be nil")
 	//}
-	posMap = new(PositionMap[P, U, V])
 	data := make([][]byte, 0, 255)
 	err = DoEachRowFile(filename, func(row []byte, nr int) error {
 		if nr == 0 {
@@ -71,9 +115,9 @@ func ToMapOfPositions[P Pos[U], U UnsignedPos, V any](filename string, transform
 		y = nr
 		data = append(data, row)
 		return nil
-	})
+	}, extra...)
 	if err != nil {
-		return nil, err
+		return posMap, err
 	}
 	posMap.MaxPos = zero.New(y, x)
 	posMap.Map = make([]V, posMap.MaxPos+1)
