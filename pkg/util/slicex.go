@@ -36,6 +36,15 @@ func ToKeysSeq2[S ~[]K, K comparable, V any](s S, v V) iter.Seq2[K, V] {
 	}
 }
 
+func CountFunc[S ~[]E, E any](s S, f func(E) bool) (res uint64) {
+	for _, e := range s {
+		if f(e) {
+			res++
+		}
+	}
+	return res
+}
+
 func AppendUnique[S ~[]E, E comparable](s S, e ...E) S {
 	toAppend := make([]E, 0, len(e))
 	for _, c := range e {
