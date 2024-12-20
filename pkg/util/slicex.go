@@ -5,22 +5,26 @@ import (
 	"slices"
 )
 
-func Repeat[E any](n int, e E) []E {
+type Integer interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
+}
+
+func Repeat[I Integer, E any](n I, e E) []E {
 	if n < 0 {
 		panic("cannot be negative")
 	}
 	res := make([]E, n)
-	for i := range n {
+	for i := I(0); i < n; i++ {
 		res[i] = e
 	}
 	return res
 }
 
-func AppendRepeat[S ~[]E, E any](s S, n int, e E) []E {
+func AppendRepeat[S ~[]E, E any, I Integer](s S, n I, e E) []E {
 	if n < 0 {
 		panic("cannot be negative")
 	}
-	for range n {
+	for i := I(0); i < n; i++ {
 		s = append(s, e)
 	}
 	return s
