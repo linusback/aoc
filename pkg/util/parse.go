@@ -121,19 +121,6 @@ func ParseInt64ArrNoErrorCache(arr []byte, input []int64) (res []int64) {
 	return res
 }
 
-func ParseUint8NoError(arr []byte) (res uint8) {
-	var mult uint8 = 1
-
-	for i := len(arr) - 1; i >= 0; i-- {
-		if arr[i] < '0' || arr[i] > '9' {
-			return
-		}
-		res += (arr[i] - '0') * mult
-		mult *= 10
-	}
-	return
-}
-
 func ParseUint64ArrNoError(arr []byte) (res []uint64) {
 	start := -1
 	for i := 0; i < len(arr); i++ {
@@ -165,14 +152,32 @@ func ParseUint64NoError(arr []byte) (res uint64) {
 	return
 }
 
-func ParseUint64IgnoreAll(arr []byte) (res uint64) {
-	var mult uint64 = 1
+func ParseUintArr[U Unsigned](arr []byte) (res []U) {
+	start := -1
+	for i := 0; i < len(arr); i++ {
+		if start == -1 && '0' <= arr[i] && arr[i] <= '9' {
+			start = i
+		}
+		if start > -1 && ('0' > arr[i] || arr[i] > '9') {
+			res = append(res, ParseUint[U](arr[start:i]))
+			start = -1
+		}
+	}
+	if start > -1 {
+		res = append(res, ParseUint[U](arr[start:]))
+	}
+
+	return res
+}
+
+func ParseUint[U Unsigned](arr []byte) (res U) {
+	var mult U = 1
 
 	for i := len(arr) - 1; i >= 0; i-- {
 		if arr[i] < '0' || arr[i] > '9' {
-			continue
+			return
 		}
-		res += uint64(arr[i]-'0') * mult
+		res += U(arr[i]-'0') * mult
 		mult *= 10
 	}
 	return
