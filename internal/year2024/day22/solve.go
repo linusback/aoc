@@ -2,6 +2,7 @@ package day22
 
 import (
 	"github.com/linusback/aoc/pkg/util"
+	"os"
 	"strconv"
 )
 
@@ -21,13 +22,11 @@ var (
 )
 
 func solve(filename string) (solution1, solution2 string, err error) {
-	err = util.DoEachRowFile(filename, func(row []byte, nr int) error {
-		numbers = append(numbers, util.ParseUint64ArrNoError(row)...)
-		return nil
-	})
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		return
 	}
+	numbers = util.ParseUint64ArrNoError(b)
 	for _, number := range numbers {
 		for range 2000 {
 			number = evolveSecretNumber(number)
@@ -38,26 +37,18 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	return
 }
 
-func evolveSecretNumber(in uint64) (out uint64) {
-	out = in * 64
-	in = mix(out, in)
-	in = prune(in)
-
-	out = in / 32
-	in = mix(out, in)
-	in = prune(in)
-
-	out = in * 2048
-	in = mix(out, in)
-	in = prune(in)
+func evolveSecretNumber(in uint64) uint64 {
+	in = ((in << 6) ^ in) % 16777216
+	in = ((in >> 5) ^ in) % 16777216
+	in = ((in << 11) ^ in) % 16777216
 	return in
-
 }
 
-func mix(secret, in uint64) (out uint64) {
-	return secret ^ in
-}
-
-func prune(in uint64) (out uint64) {
-	return in % 16777216
-}
+//
+//func mix(secret, in uint64) (out uint64) {
+//	return secret ^ in
+//}
+//
+//func prune(in uint64) (out uint64) {
+//	return in % 16777216
+//}
