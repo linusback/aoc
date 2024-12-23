@@ -23,9 +23,9 @@ func Solve() (solution1, solution2 string, err error) {
 }
 
 type warehouseType struct {
+	map2  []byte
+	robot position.Pos8
 	util.PositionMap[position.Pos8, position.Pos8, byte]
-	map2         []byte
-	robot        position.Pos8
 	instructions []position.Pos8
 }
 

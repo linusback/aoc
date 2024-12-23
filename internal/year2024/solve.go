@@ -2,6 +2,14 @@ package year2024
 
 import (
 	"github.com/linusback/aoc/internal/year2024/day1"
+	"github.com/linusback/aoc/internal/year2024/day2"
+	"github.com/linusback/aoc/internal/year2024/day3"
+	"github.com/linusback/aoc/internal/year2024/day4"
+	"github.com/linusback/aoc/internal/year2024/day5"
+	"github.com/linusback/aoc/internal/year2024/day6"
+	"github.com/linusback/aoc/internal/year2024/day7"
+	"github.com/linusback/aoc/internal/year2024/day8"
+	"github.com/linusback/aoc/internal/year2024/day9"
 	"github.com/linusback/aoc/internal/year2024/day10"
 	"github.com/linusback/aoc/internal/year2024/day11"
 	"github.com/linusback/aoc/internal/year2024/day12"
@@ -12,15 +20,10 @@ import (
 	"github.com/linusback/aoc/internal/year2024/day17"
 	"github.com/linusback/aoc/internal/year2024/day18"
 	"github.com/linusback/aoc/internal/year2024/day19"
-	"github.com/linusback/aoc/internal/year2024/day2"
 	"github.com/linusback/aoc/internal/year2024/day20"
-	"github.com/linusback/aoc/internal/year2024/day3"
-	"github.com/linusback/aoc/internal/year2024/day4"
-	"github.com/linusback/aoc/internal/year2024/day5"
-	"github.com/linusback/aoc/internal/year2024/day6"
-	"github.com/linusback/aoc/internal/year2024/day7"
-	"github.com/linusback/aoc/internal/year2024/day8"
-	"github.com/linusback/aoc/internal/year2024/day9"
+	"github.com/linusback/aoc/internal/year2024/day21"
+	"github.com/linusback/aoc/internal/year2024/day22"
+	"github.com/linusback/aoc/internal/year2024/day23"
 	"github.com/linusback/aoc/pkg/errorsx"
 )
 
@@ -68,6 +71,12 @@ func Solve(day string) (solution1, solution2 string, err error) {
 		return day19.Solve()
 	case "20":
 		return day20.Solve()
+	case "21":
+		return day21.Solve()
+	case "22":
+		return day22.Solve()
+	case "23":
+		return day23.Solve()
 	default:
 		err = errorsx.NewSolverError(year, day, errorsx.ErrDayNotCreated)
 		return
