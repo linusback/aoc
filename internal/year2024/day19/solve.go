@@ -1,6 +1,7 @@
 package day19
 
 import (
+	"bytes"
 	"cmp"
 	"github.com/linusback/aoc/pkg/util"
 	"slices"
@@ -49,15 +50,6 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	if err != nil {
 		return
 	}
-	slices.SortFunc(towels, func(a, b pattern) int {
-		if len(a) < len(b) {
-			return -1
-		}
-		if len(a) > len(b) {
-			return 1
-		}
-		return cmp.Compare(string(a), string(b))
-	})
 	solution1, solution2 = solveTowels()
 
 	return
@@ -102,12 +94,50 @@ func canBeMade(pattern pattern, res uint64) uint64 {
 }
 
 func notMatch(pattern, t pattern) bool {
-	for i, b := range t {
-		if pattern[i] != b {
+	if pattern[0] != t[0] {
+		return true
+	}
+	for i := 1; i < len(t); i++ {
+		if pattern[i] != t[i] {
 			return true
 		}
 	}
 	return false
+}
+
+func notMatch2(pattern, t pattern) bool {
+	if pattern[0] != t[0] {
+		return true
+	}
+	return !bytes.Equal(t, pattern[:len(t)])
+}
+
+func notMatch3(pattern, t pattern) bool {
+	if pattern[0] != t[0] {
+		return true
+	}
+	return util.ToUnsafeString(t) != util.ToUnsafeString(pattern[:len(t)])
+}
+
+func notMatch4(pattern, t pattern) bool {
+	if pattern[0] != t[0] {
+		return true
+	}
+	switch len(t) {
+	case 1:
+		return false
+	case 2:
+		return pattern[1] != t[1]
+	case 3:
+		return pattern[1] != t[1] || pattern[2] != t[2]
+	default:
+		for i := 1; i < len(t); i++ {
+			if pattern[i] != t[i] {
+				return true
+			}
+		}
+		return false
+	}
 }
 
 func parsePatterns(row []byte, _ int) error {
@@ -133,5 +163,14 @@ func parseTowels(row []byte, _ int) error {
 	if start < i {
 		towels = append(towels, row[start:])
 	}
+	slices.SortFunc(towels, func(a, b pattern) int {
+		if len(a) < len(b) {
+			return -1
+		}
+		if len(a) > len(b) {
+			return 1
+		}
+		return cmp.Compare(string(a), string(b))
+	})
 	return nil
 }
