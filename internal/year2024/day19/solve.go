@@ -2,6 +2,7 @@ package day19
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/linusback/aoc/pkg/util"
 	"strconv"
 	"strings"
@@ -42,7 +43,7 @@ func (t towelArr) String() string {
 var (
 	towels       towelArr
 	patterns     towelArr
-	knownPattern = make(map[string]uint64)
+	knownPattern = make(map[string]uint64, 19000)
 )
 
 func solve(filename string) (solution1, solution2 string, err error) {
@@ -50,8 +51,13 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	if err != nil {
 		return
 	}
-	//log.Println("towels", towels)
-	//log.Println("patterns", patterns)
+	fmt.Println(towels)
+	solution1, solution2 = solveTowels()
+
+	return
+}
+
+func solveTowels() (solution1, solution2 string) {
 	var res1, res2 uint64
 	for _, t := range patterns {
 		if ways := canBeMade(t, 0); ways > 0 {
@@ -59,9 +65,7 @@ func solve(filename string) (solution1, solution2 string, err error) {
 			res2 += ways
 		}
 	}
-	solution1 = strconv.FormatUint(res1, 10)
-	solution2 = strconv.FormatUint(res2, 10)
-	return
+	return strconv.FormatUint(res1, 10), strconv.FormatUint(res2, 10)
 }
 
 func canBeMade(pattern towel, res uint64) uint64 {
@@ -73,7 +77,7 @@ func canBeMade(pattern towel, res uint64) uint64 {
 		key     string
 	)
 	for _, t := range towels {
-		if !matchesStart(pattern, t) {
+		if notMatch(pattern, t) {
 			continue
 		}
 		key = util.ToUnsafeString(pattern[len(t):])
@@ -88,11 +92,8 @@ func canBeMade(pattern towel, res uint64) uint64 {
 	return res + newWays
 }
 
-func matchesStart(pattern, t towel) bool {
-	if len(pattern) < len(t) {
-		return false
-	}
-	return bytes.Equal(pattern[:len(t)], t)
+func notMatch(pattern, t towel) bool {
+	return len(pattern) < len(t) || !bytes.Equal(pattern[0:len(t)], t)
 }
 
 func parsePatterns(row []byte, _ int) error {
