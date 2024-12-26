@@ -9,6 +9,8 @@ const (
 	ErrPatternIsNull errorsx.SimpleError = "pattern cannot be null"
 )
 
+var AsciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
+
 type PatternFunc func([]byte) bool
 
 type StringPattern string
@@ -50,4 +52,8 @@ func BytesEqualString(b []byte, s string) bool {
 
 func ToUnsafeString(s []byte) string {
 	return *(*string)(unsafe.Pointer(&s))
+}
+
+func PtrToUnsafeString(s *[]byte) string {
+	return *(*string)(unsafe.Pointer(s))
 }

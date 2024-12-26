@@ -43,12 +43,3 @@ func evolveSecretNumber(in uint64) uint64 {
 	in = ((in << 11) ^ in) % 16777216
 	return in
 }
-
-//
-//func mix(secret, in uint64) (out uint64) {
-//	return secret ^ in
-//}
-//
-//func prune(in uint64) (out uint64) {
-//	return in % 16777216
-//}

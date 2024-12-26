@@ -1,4 +1,4 @@
-package day22
+package day25
 
 import (
 	"log"
@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	exampleFile = "./internal/year2023/day22/example.txt"
-	inputFile   = "./internal/year2023/day22/input.txt"
+	exampleFile = "./internal/year2024/day25/example.txt"
+	inputFile   = "./internal/year2024/day25/input.txt"
 )
 
 func Solve() (solution1, solution2 string, err error) {
@@ -15,11 +15,11 @@ func Solve() (solution1, solution2 string, err error) {
 }
 
 func solve(filename string) (solution1, solution2 string, err error) {
-	log.Println("welcome to day 22 of advent of code")
+    log.Println("welcome to day 25 of advent of code")
 	b, err := os.ReadFile(filename)
 	if err != nil {
 		return
 	}
-	log.Printf("\n%s\n", b)
+	log.Printf("\n%s\n",b)
 	return
 }
