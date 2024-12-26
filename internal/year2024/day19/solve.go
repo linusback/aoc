@@ -3,7 +3,6 @@ package day19
 import (
 	"bytes"
 	"github.com/linusback/aoc/pkg/util"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -41,9 +40,9 @@ func (t towelArr) String() string {
 }
 
 var (
-	towels            towelArr
-	patterns          towelArr
-	impossiblePattern = make(map[string]struct{})
+	towels       towelArr
+	patterns     towelArr
+	knownPattern = make(map[string]uint64)
 )
 
 func solve(filename string) (solution1, solution2 string, err error) {
@@ -51,43 +50,42 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	if err != nil {
 		return
 	}
-	log.Println("towels", towels)
-	log.Println("patterns", patterns)
-	var res1 uint64
-	for i, t := range patterns {
-		log.Printf("testing pattern (%d/%d): %v", i+1, len(patterns), t)
-		if canBeMade(t) {
+	//log.Println("towels", towels)
+	//log.Println("patterns", patterns)
+	var res1, res2 uint64
+	for _, t := range patterns {
+		if ways := canBeMade(t, 0); ways > 0 {
 			res1++
-			log.Println("can be made", t)
-		} else {
-			log.Println("NO POSSIBLE", t)
+			res2 += ways
 		}
-		log.Println("________________")
 	}
-	log.Println("can make", res1, "patterns")
 	solution1 = strconv.FormatUint(res1, 10)
+	solution2 = strconv.FormatUint(res2, 10)
 	return
 }
 
-func canBeMade(pattern towel) bool {
+func canBeMade(pattern towel, res uint64) uint64 {
 	if len(pattern) == 0 {
-		return true
+		return res + 1
 	}
+	var (
+		newWays uint64
+		key     string
+	)
 	for _, t := range towels {
 		if !matchesStart(pattern, t) {
 			continue
 		}
-		if _, ok := impossiblePattern[util.ToUnsafeString(pattern[len(t):])]; ok {
+		key = util.ToUnsafeString(pattern[len(t):])
+		if ways, ok := knownPattern[key]; ok {
+			newWays += ways
 			continue
 		}
-		if canBeMade(pattern[len(t):]) {
-			//log.Println("using towel", t)
-			return true
-		} else {
-			impossiblePattern[util.ToUnsafeString(pattern[len(t):])] = struct{}{}
-		}
+		ways := canBeMade(pattern[len(t):], res)
+		newWays += ways
+		knownPattern[key] = ways
 	}
-	return false
+	return res + newWays
 }
 
 func matchesStart(pattern, t towel) bool {
