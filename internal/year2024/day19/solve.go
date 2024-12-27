@@ -47,9 +47,8 @@ var (
 	towelsByChar [256][]pattern
 	towels       []pattern
 	patterns     []pattern
-	towelMap     = make(map[string][]pattern)
-	towelMap2    [826][]pattern
-
+	towelMap     [826][]pattern
+	oneStripeMap [26]uint64
 	//knownPattern  = make(map[string]uint64, 19000)
 )
 
@@ -59,20 +58,19 @@ func solve(filename string) (solution1, solution2 string, err error) {
 		return
 	}
 
-	for i, t := range towelMap2 {
+	log.Println("________________________")
+	for i, t := range towelMap {
 		if len(t) == 0 {
 			continue
 		}
 		mapPattern(keyToString(i), t)
 		//log.Printf("%c: %s\n", i, ToString(t))
 	}
-	log.Println("________________________")
-	for i, t := range towelMap {
-		if len(t) == 0 {
+	for i, u := range oneStripeMap {
+		if u == 0 {
 			continue
 		}
-		mapPattern(i, t)
-		//log.Printf("%c: %s\n", i, ToString(t))
+		log.Printf("%c: 1", i+'a')
 	}
 
 	//solution1, solution2 = solveTowels()
@@ -155,8 +153,11 @@ func consume(parallel int) <-chan pattern {
 }
 
 func canBeMade(pattern pattern, res uint64, knownPattern map[string]uint64) uint64 {
-	if len(pattern) == 0 {
+	switch len(pattern) {
+	case 0:
 		return res + 1
+	case 1:
+		return res + oneStripeMap[pattern[0]-'a']
 	}
 	var (
 		newWays uint64
@@ -269,13 +270,11 @@ func parseTowels(row []byte, _ int) error {
 		}
 		slices.SortFunc(t, patternSort)
 	}
-	for k, t := range towelMap {
+	for _, t := range towelMap {
 		if len(t) == 0 {
 			continue
 		}
 		slices.SortFunc(t, patternSort)
-		key := uint16(k[0]-'a')<<5 | uint16(k[1]-'a')
-		towelMap2[key] = t
 	}
 	return nil
 }
@@ -290,12 +289,8 @@ func patternSort(a, b pattern) int {
 	return cmp.Compare(string(a), string(b))
 }
 
-func getTowelMap2(a, b byte) []pattern {
-	return towelMap2[uint16(a-'a')<<5|uint16(b-'a')]
-}
-
-func getTowelMap(p pattern) []pattern {
-	return towelMap[string(p[:2])]
+func getTowelMap(a, b byte) []pattern {
+	return towelMap[uint16(a-'a')<<5|uint16(b-'a')]
 }
 
 func keyToString(i int) string {
@@ -305,10 +300,13 @@ func keyToString(i int) string {
 }
 
 func addTowelMaps(p pattern) {
-	if len(p) < 2 {
+	switch len(p) {
+	case 0:
+		return
+	case 1:
+		oneStripeMap[p[0]-'a'] = 1
 		return
 	}
-	//key := uint16(p[0]-'a')<<5 | uint16(p[1]-'a')
-	//towelMap2[key] = append(towelMap2[key], p)
-	towelMap[string(p[:2])] = append(towelMap[string(p[:2])], p)
+	key := uint16(p[0]-'a')<<5 | uint16(p[1]-'a')
+	towelMap[key] = append(towelMap[key], p)
 }

@@ -81,27 +81,7 @@ func Benchmark_MapAccess(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, p := range patterns {
 			for k := 0; k < len(p)-1; k++ {
-				t = getTowelMap(p[k:])
-				if len(t) == 0 {
-					continue
-				}
-			}
-		}
-	}
-}
-
-func Benchmark_MapAccess2(b *testing.B) {
-	err := parseInput()
-	if err != nil {
-		b.Error(err)
-	}
-	b.ReportAllocs()
-	b.SetBytes(patternSize)
-	var t []pattern
-	for i := 0; i < b.N; i++ {
-		for _, p := range patterns {
-			for k := 0; k < len(p)-1; k++ {
-				t = getTowelMap2(p[k], p[k+1])
+				t = getTowelMap(p[k], p[k+1])
 				if len(t) == 0 {
 					continue
 				}
