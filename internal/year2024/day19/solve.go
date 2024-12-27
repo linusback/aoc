@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"cmp"
 	"fmt"
+	"github.com/dolthub/swiss"
 	"github.com/linusback/aoc/pkg/util"
 	"log"
 	"slices"
@@ -100,7 +101,8 @@ func mapPattern(s string, p []pattern) {
 
 func solveTowels() (solution1, solution2 string) {
 	var res1, res2 uint64
-	knownPattern := make(map[string]uint64, 18500)
+	//knownPattern := make(map[string]uint64, 18500)
+	knownPattern := swiss.NewMap[string, uint64](18500)
 	for _, t := range patterns {
 		if ways := canBeMade(t, 0, knownPattern); ways > 0 {
 			res1++
@@ -120,13 +122,14 @@ func solveTowelsParallel() (solution1, solution2 string) {
 	for i := 0; i < parallel; i++ {
 		go func() {
 			defer wg.Done()
-			knownPattern := make(map[string]uint64, 3000)
+			knownPattern := swiss.NewMap[string, uint64](2500)
 			for t := range ch {
 				if ways := canBeMade(t, 0, knownPattern); ways > 0 {
 					atomic.AddUint64(&res1, 1)
 					atomic.AddUint64(&res2, ways)
 				}
 			}
+			//fmt.Println("len:", knownPattern.Count())
 			//fmt.Println("len:", len(knownPattern))
 
 		}()
@@ -152,7 +155,7 @@ func consume(parallel int) <-chan pattern {
 	return ch
 }
 
-func canBeMade(pattern pattern, res uint64, knownPattern map[string]uint64) uint64 {
+func canBeMade(pattern pattern, res uint64, knownPattern *swiss.Map[string, uint64]) uint64 {
 	switch len(pattern) {
 	case 0:
 		return res + 1
@@ -166,19 +169,21 @@ func canBeMade(pattern pattern, res uint64, knownPattern map[string]uint64) uint
 		ok      bool
 	)
 	key = util.ToUnsafeString(pattern)
-	if ways, ok = knownPattern[key]; ok {
+	if ways, ok = knownPattern.Get(key); ok {
 		return res + ways
 	}
 
 	if oneStripeMap[pattern[0]-'a'] == 1 {
 		ways = canBeMade(pattern[1:], res, knownPattern)
 		newWays += ways
-		knownPattern[util.ToUnsafeString(pattern[1:])] = ways
+		knownPattern.Put(util.ToUnsafeString(pattern[1:]), ways)
+		//knownPattern[util.ToUnsafeString(pattern[1:])] = ways
 	}
 
 	towelPatters := getTowelMap(pattern[0], pattern[1])
 	if len(towelPatters) == 0 {
-		knownPattern[util.ToUnsafeString(pattern)] = 0
+		knownPattern.Put(util.ToUnsafeString(pattern), 0)
+		//knownPattern[util.ToUnsafeString(pattern)] = 0
 		return res
 	}
 
@@ -190,13 +195,13 @@ func canBeMade(pattern pattern, res uint64, knownPattern map[string]uint64) uint
 			continue
 		}
 		key = util.ToUnsafeString(pattern[len(t):])
-		if ways, ok = knownPattern[key]; ok {
+		if ways, ok = knownPattern.Get(key); ok {
 			newWays += ways
 			continue
 		}
 		ways = canBeMade(pattern[len(t):], res, knownPattern)
 		newWays += ways
-		knownPattern[key] = ways
+		knownPattern.Put(key, ways)
 	}
 	return res + newWays
 }
