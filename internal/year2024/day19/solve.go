@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"cmp"
 	"github.com/linusback/aoc/pkg/util"
+	"log"
 	"slices"
 	"strconv"
 	"strings"
@@ -42,8 +43,9 @@ func ToString(t []pattern) string {
 }
 
 var (
-	towels   []pattern
-	patterns []pattern
+	towelsByChar [256][]pattern
+	towels       []pattern
+	patterns     []pattern
 	//knownPattern  = make(map[string]uint64, 19000)
 )
 
@@ -52,12 +54,31 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	if err != nil {
 		return
 	}
+	//for i, t := range towelsByChar {
+	//	if len(t) == 0 {
+	//		continue
+	//	}
+	//	log.Printf("%c: %s\n", i, ToString(t))
+	//}
 	solution1, solution2 = solveTowels()
 
 	return
 }
 
 func solveTowels() (solution1, solution2 string) {
+	var res1, res2 uint64
+	knownPattern := make(map[string]uint64, 18500)
+	for _, t := range patterns {
+		if ways := canBeMade(t, 0, knownPattern); ways > 0 {
+			res1++
+			res2 += ways
+		}
+	}
+	log.Println("len:", len(knownPattern))
+	return strconv.FormatUint(res1, 10), strconv.FormatUint(res2, 10)
+}
+
+func solveTowelsParallel() (solution1, solution2 string) {
 	const parallel = 10
 	var res1, res2 uint64
 	ch := consume(parallel)
@@ -106,7 +127,12 @@ func canBeMade(pattern pattern, res uint64, knownPattern map[string]uint64) uint
 		newWays uint64
 		key     string
 	)
-	for _, t := range towels {
+	towelPatters := towelsByChar[pattern[0]]
+	if len(towelPatters) == 0 {
+		knownPattern[util.ToUnsafeString(pattern)] = 0
+		return res
+	}
+	for _, t := range towelPatters {
 		if len(pattern) < len(t) {
 			break
 		}
@@ -126,9 +152,6 @@ func canBeMade(pattern pattern, res uint64, knownPattern map[string]uint64) uint
 }
 
 func notMatch(pattern, t pattern) bool {
-	if pattern[0] != t[0] {
-		return true
-	}
 	for i := 1; i < len(t); i++ {
 		if pattern[i] != t[i] {
 			return true
@@ -181,6 +204,7 @@ func parseTowels(row []byte, _ int) error {
 	var (
 		start, i int
 		b        byte
+		towel    pattern
 	)
 	for i, b = range row {
 		if util.AsciiSpace[b] == 1 {
@@ -188,21 +212,33 @@ func parseTowels(row []byte, _ int) error {
 			continue
 		}
 		if b == ',' {
-			towels = append(towels, row[start:i])
+			towel = row[start:i]
+			towels = append(towels, towel)
+			towelsByChar[row[start]] = append(towelsByChar[row[start]], towel)
 			start = i + 1
 		}
 	}
 	if start < i {
-		towels = append(towels, row[start:])
+		towel = row[start:]
+		towels = append(towels, towel)
+		towelsByChar[row[start]] = append(towelsByChar[row[start]], towel)
 	}
-	slices.SortFunc(towels, func(a, b pattern) int {
-		if len(a) < len(b) {
-			return -1
+	slices.SortFunc(towels, patternSort)
+	for _, t := range towelsByChar {
+		if len(t) == 0 {
+			continue
 		}
-		if len(a) > len(b) {
-			return 1
-		}
-		return cmp.Compare(string(a), string(b))
-	})
+		slices.SortFunc(t, patternSort)
+	}
 	return nil
+}
+
+func patternSort(a, b pattern) int {
+	if len(a) < len(b) {
+		return -1
+	}
+	if len(a) > len(b) {
+		return 1
+	}
+	return cmp.Compare(string(a), string(b))
 }
