@@ -7,6 +7,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 )
 
 const (
@@ -40,9 +42,9 @@ func ToString(t []pattern) string {
 }
 
 var (
-	towels       []pattern
-	patterns     []pattern
-	knownPattern = make(map[string]uint64, 19000)
+	towels   []pattern
+	patterns []pattern
+	//knownPattern  = make(map[string]uint64, 19000)
 )
 
 func solve(filename string) (solution1, solution2 string, err error) {
@@ -56,17 +58,47 @@ func solve(filename string) (solution1, solution2 string, err error) {
 }
 
 func solveTowels() (solution1, solution2 string) {
+	const parallel = 10
 	var res1, res2 uint64
-	for _, t := range patterns {
-		if ways := canBeMade(t, 0); ways > 0 {
-			res1++
-			res2 += ways
-		}
+	ch := consume(parallel)
+	wg := new(sync.WaitGroup)
+	wg.Add(parallel)
+	for i := 0; i < parallel; i++ {
+		go func() {
+			defer wg.Done()
+			knownPattern := make(map[string]uint64, 3000)
+			for t := range ch {
+				if ways := canBeMade(t, 0, knownPattern); ways > 0 {
+					atomic.AddUint64(&res1, 1)
+					atomic.AddUint64(&res2, ways)
+				}
+			}
+			//fmt.Println("len:", len(knownPattern))
+
+		}()
 	}
+	wg.Wait()
+	//for _, t := range patterns {
+	//	if ways := canBeMade(t, 0); ways > 0 {
+	//		res1++
+	//		res2 += ways
+	//	}
+	//}
 	return strconv.FormatUint(res1, 10), strconv.FormatUint(res2, 10)
 }
 
-func canBeMade(pattern pattern, res uint64) uint64 {
+func consume(parallel int) <-chan pattern {
+	ch := make(chan pattern, parallel)
+	go func() {
+		for _, p := range patterns {
+			ch <- p
+		}
+		close(ch)
+	}()
+	return ch
+}
+
+func canBeMade(pattern pattern, res uint64, knownPattern map[string]uint64) uint64 {
 	if len(pattern) == 0 {
 		return res + 1
 	}
@@ -86,7 +118,7 @@ func canBeMade(pattern pattern, res uint64) uint64 {
 			newWays += ways
 			continue
 		}
-		ways := canBeMade(pattern[len(t):], res)
+		ways := canBeMade(pattern[len(t):], res, knownPattern)
 		newWays += ways
 		knownPattern[key] = ways
 	}
