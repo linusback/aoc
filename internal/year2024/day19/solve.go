@@ -58,20 +58,20 @@ func solve(filename string) (solution1, solution2 string, err error) {
 		return
 	}
 
-	log.Println("________________________")
-	for i, t := range towelMap {
-		if len(t) == 0 {
-			continue
-		}
-		mapPattern(keyToString(i), t)
-		//log.Printf("%c: %s\n", i, ToString(t))
-	}
-	for i, u := range oneStripeMap {
-		if u == 0 {
-			continue
-		}
-		log.Printf("%c: 1", i+'a')
-	}
+	//log.Println("________________________")
+	//for i, t := range towelMap {
+	//	if len(t) == 0 {
+	//		continue
+	//	}
+	//	mapPattern(keyToString(i), t)
+	//	//log.Printf("%c: %s\n", i, ToString(t))
+	//}
+	//for i, u := range oneStripeMap {
+	//	if u == 0 {
+	//		continue
+	//	}
+	//	log.Printf("%c: 1", i+'a')
+	//}
 
 	//solution1, solution2 = solveTowels()
 	solution1, solution2 = solveTowelsParallel()
@@ -112,7 +112,7 @@ func solveTowels() (solution1, solution2 string) {
 }
 
 func solveTowelsParallel() (solution1, solution2 string) {
-	const parallel = 10
+	const parallel = 16
 	var res1, res2 uint64
 	ch := consume(parallel)
 	wg := new(sync.WaitGroup)
@@ -161,9 +161,22 @@ func canBeMade(pattern pattern, res uint64, knownPattern map[string]uint64) uint
 	}
 	var (
 		newWays uint64
+		ways    uint64
 		key     string
+		ok      bool
 	)
-	towelPatters := towelsByChar[pattern[0]]
+	key = util.ToUnsafeString(pattern)
+	if ways, ok = knownPattern[key]; ok {
+		return res + ways
+	}
+
+	if oneStripeMap[pattern[0]-'a'] == 1 {
+		ways = canBeMade(pattern[1:], res, knownPattern)
+		newWays += ways
+		knownPattern[util.ToUnsafeString(pattern[1:])] = ways
+	}
+
+	towelPatters := getTowelMap(pattern[0], pattern[1])
 	if len(towelPatters) == 0 {
 		knownPattern[util.ToUnsafeString(pattern)] = 0
 		return res
@@ -177,11 +190,11 @@ func canBeMade(pattern pattern, res uint64, knownPattern map[string]uint64) uint
 			continue
 		}
 		key = util.ToUnsafeString(pattern[len(t):])
-		if ways, ok := knownPattern[key]; ok {
+		if ways, ok = knownPattern[key]; ok {
 			newWays += ways
 			continue
 		}
-		ways := canBeMade(pattern[len(t):], res, knownPattern)
+		ways = canBeMade(pattern[len(t):], res, knownPattern)
 		newWays += ways
 		knownPattern[key] = ways
 	}
@@ -189,7 +202,7 @@ func canBeMade(pattern pattern, res uint64, knownPattern map[string]uint64) uint
 }
 
 func notMatch(pattern, t pattern) bool {
-	for i := 1; i < len(t); i++ {
+	for i := 2; i < len(t); i++ {
 		if pattern[i] != t[i] {
 			return true
 		}
