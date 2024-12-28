@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"cmp"
 	"fmt"
-	"github.com/dolthub/swiss"
 	"github.com/linusback/aoc/pkg/util"
 	"log"
 	"slices"
@@ -58,7 +57,7 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	if err != nil {
 		return
 	}
-
+	//log.Println("max len", maxlen)
 	//log.Println("________________________")
 	//for i, t := range towelMap {
 	//	if len(t) == 0 {
@@ -102,8 +101,12 @@ func mapPattern(s string, p []pattern) {
 func solveTowels() (solution1, solution2 string) {
 	var res1, res2 uint64
 	//knownPattern := make(map[string]uint64, 18500)
-	knownPattern := swiss.NewMap[string, uint64](18500)
+	knownPattern := make([]int64, 61)
 	for _, t := range patterns {
+		knownPattern = knownPattern[:len(t)+1]
+		for k := range knownPattern {
+			knownPattern[k] = -1
+		}
 		if ways := canBeMade(t, 0, knownPattern); ways > 0 {
 			res1++
 			res2 += ways
@@ -122,8 +125,13 @@ func solveTowelsParallel() (solution1, solution2 string) {
 	for i := 0; i < parallel; i++ {
 		go func() {
 			defer wg.Done()
-			knownPattern := swiss.NewMap[string, uint64](2500)
+			//knownPattern := swiss.NewMap[string, uint64](2500)
+			knownPattern := make([]int64, 61)
 			for t := range ch {
+				knownPattern = knownPattern[:len(t)+1]
+				for k := range knownPattern {
+					knownPattern[k] = -1
+				}
 				if ways := canBeMade(t, 0, knownPattern); ways > 0 {
 					atomic.AddUint64(&res1, 1)
 					atomic.AddUint64(&res2, ways)
@@ -155,53 +163,52 @@ func consume(parallel int) <-chan pattern {
 	return ch
 }
 
-func canBeMade(pattern pattern, res uint64, knownPattern *swiss.Map[string, uint64]) uint64 {
-	switch len(pattern) {
+func canBeMade(p pattern, res uint64, knownPattern []int64) uint64 {
+	key := len(p)
+	switch key {
 	case 0:
 		return res + 1
 	case 1:
-		return res + oneStripeMap[pattern[0]-'a']
+		return res + oneStripeMap[p[0]-'a']
 	}
 	var (
-		newWays uint64
-		ways    uint64
-		key     string
-		ok      bool
+		newWays  uint64
+		ways     uint64
+		knownWay int64
 	)
-	key = util.ToUnsafeString(pattern)
-	if ways, ok = knownPattern.Get(key); ok {
-		return res + ways
+	knownWay = knownPattern[key]
+	if knownWay > -1 {
+		return res + uint64(knownWay)
 	}
 
-	if oneStripeMap[pattern[0]-'a'] == 1 {
-		ways = canBeMade(pattern[1:], res, knownPattern)
+	if oneStripeMap[p[0]-'a'] == 1 {
+		ways = canBeMade(p[1:], res, knownPattern)
 		newWays += ways
-		knownPattern.Put(util.ToUnsafeString(pattern[1:]), ways)
-		//knownPattern[util.ToUnsafeString(pattern[1:])] = ways
+		knownPattern[key-1] = int64(ways)
 	}
 
-	towelPatters := getTowelMap(pattern[0], pattern[1])
+	towelPatters := getTowelMap(p[0], p[1])
 	if len(towelPatters) == 0 {
-		knownPattern.Put(util.ToUnsafeString(pattern), 0)
-		//knownPattern[util.ToUnsafeString(pattern)] = 0
+		knownPattern[key] = 0
 		return res
 	}
 
 	for _, t := range towelPatters {
-		if len(pattern) < len(t) {
+		if len(p) < len(t) {
 			break
 		}
-		if notMatch(pattern, t) {
+		if notMatch(p, t) {
 			continue
 		}
-		key = util.ToUnsafeString(pattern[len(t):])
-		if ways, ok = knownPattern.Get(key); ok {
-			newWays += ways
+		key = len(p) - len(t)
+		knownWay = knownPattern[key]
+		if knownWay > -1 {
+			newWays += uint64(knownWay)
 			continue
 		}
-		ways = canBeMade(pattern[len(t):], res, knownPattern)
+		ways = canBeMade(p[len(t):], res, knownPattern)
 		newWays += ways
-		knownPattern.Put(key, ways)
+		knownPattern[key] = int64(ways)
 	}
 	return res + newWays
 }
