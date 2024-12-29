@@ -1,6 +1,7 @@
 package day19
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/linusback/aoc/pkg/util"
 	"slices"
@@ -20,6 +21,8 @@ type matchTest struct {
 	towels []pattern
 }
 
+type hashFunc func(byte) uint16
+
 func Benchmark_solveTowels(b *testing.B) {
 	err := parseInput()
 	if err != nil {
@@ -30,6 +33,15 @@ func Benchmark_solveTowels(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, _ = solveTowelsParallel()
 	}
+}
+
+func Benchmark_Hash(b *testing.B) {
+	err := parseInput()
+	if err != nil {
+		b.Error(err)
+	}
+	b.Run("rust", benchHash(perfectHashRust))
+	b.Run("switch", benchHash(perfectHashSwitch))
 }
 
 func Benchmark_notMatch(b *testing.B) {
@@ -133,7 +145,7 @@ func parseInput() (err error) {
 		}
 		towels = append(towels, t...)
 	}
-	
+
 	if len(matchTests) > 0 {
 		return nil
 	}
@@ -156,4 +168,73 @@ func parseInput() (err error) {
 		}
 	}
 	return nil
+}
+
+func notMatch2(pattern, t pattern) bool {
+	if pattern[0] != t[0] {
+		return true
+	}
+	return !bytes.Equal(t, pattern[:len(t)])
+}
+
+func notMatch3(pattern, t pattern) bool {
+	if pattern[0] != t[0] {
+		return true
+	}
+	return util.ToUnsafeString(t) != util.ToUnsafeString(pattern[:len(t)])
+}
+
+func notMatch4(pattern, t pattern) bool {
+	if pattern[0] != t[0] {
+		return true
+	}
+	switch len(t) {
+	case 1:
+		return false
+	case 2:
+		return pattern[1] != t[1]
+	case 3:
+		return pattern[1] != t[1] || pattern[2] != t[2]
+	default:
+		for i := 1; i < len(t); i++ {
+			if pattern[i] != t[i] {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+func benchHash(f hashFunc) func(*testing.B) {
+	return func(b *testing.B) {
+		b.ResetTimer()
+		for _, p := range patterns {
+			for i := 0; i < len(p); i++ {
+				for _, by := range p[i:] {
+					f(by)
+				}
+			}
+		}
+	}
+}
+
+func perfectHashRust(b byte) uint16 {
+	return uint16((b ^ (b >> 4)) & 7)
+}
+
+func perfectHashSwitch(b byte) uint16 {
+	switch b {
+	case 'b':
+		return 0
+	case 'g':
+		return 1
+	case 'r':
+		return 2
+	case 'u':
+		return 3
+	case 'w':
+		return 4
+	default:
+		panic("unknown pattern")
+	}
 }
