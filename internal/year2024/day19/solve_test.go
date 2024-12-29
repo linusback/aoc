@@ -12,8 +12,9 @@ const testFilename = "./input.txt"
 const patternSize = 20644
 
 var (
-	matchTests []matchTest
-	//towels     []pattern
+	matchTests   []matchTest
+	towelMap     [826][]pattern
+	oneStripeMap [26]uint64
 )
 
 type matchTest struct {
@@ -84,26 +85,6 @@ func Benchmark_notMatch4(b *testing.B) {
 	}
 }
 
-func Benchmark_MapAccess(b *testing.B) {
-	err := parseInput()
-	if err != nil {
-		b.Error(err)
-	}
-	b.ReportAllocs()
-	b.SetBytes(patternSize)
-	var t []pattern
-	for i := 0; i < b.N; i++ {
-		for _, p := range patterns {
-			for k := 0; k < len(p)-1; k++ {
-				t = getTowelMap(p[k], p[k+1])
-				if len(t) == 0 {
-					continue
-				}
-			}
-		}
-	}
-}
-
 func runBenchmarkMatcher(mt matchTest, m func(pattern, pattern) bool) func(b *testing.B) {
 	return func(b *testing.B) {
 		b.ResetTimer()
@@ -168,6 +149,15 @@ func parseInput() (err error) {
 		}
 	}
 	return nil
+}
+
+func notMatch(pattern, t pattern) bool {
+	for i := 2; i < len(t); i++ {
+		if pattern[i] != t[i] {
+			return true
+		}
+	}
+	return false
 }
 
 func notMatch2(pattern, t pattern) bool {
