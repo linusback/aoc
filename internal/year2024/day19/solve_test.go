@@ -28,10 +28,10 @@ func Benchmark_solveTowels(b *testing.B) {
 	if err != nil {
 		b.Error(err)
 	}
-	b.ReportAllocs()
+	//b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = solveTowelsParallel()
+		_, _ = solveTowels()
 	}
 }
 

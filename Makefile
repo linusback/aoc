@@ -40,6 +40,9 @@ bench:
 bench-prof:
 	go test ./internal/$(BENCH) -bench=$(BENCHMARK) -benchtime $(BENCH_TIME) -run=^\# -cpu=20 -cpuprofile ./tmp/$(subst /,-,$(BENCH))_cpu.prof -memprofile ./tmp/$(subst /,-,$(BENCH))_mem.prof -o ./tmp/$(subst /,-,$(BENCH)).test
 
+bench-prof-cpu:
+	go test ./internal/$(BENCH) -bench=$(BENCHMARK) -benchtime $(BENCH_TIME) -run=^\# -cpu=20 -cpuprofile ./tmp/$(subst /,-,$(BENCH))_cpu.prof -o ./tmp/$(subst /,-,$(BENCH)).test
+
 
 clean:
 	rm -f dist/*
