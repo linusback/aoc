@@ -1,6 +1,7 @@
 package day19
 
 import (
+	"cmp"
 	"fmt"
 	"github.com/linusback/aoc/pkg/util"
 	"log"
@@ -45,4 +46,14 @@ func PrintPattern(s string, p []pattern) {
 		slices.SortFunc(p2, patternSort)
 		log.Printf("%c: %s\n", i, ToString(p2))
 	}
+}
+
+func patternSort(a, b pattern) int {
+	if len(a) < len(b) {
+		return -1
+	}
+	if len(a) > len(b) {
+		return 1
+	}
+	return cmp.Compare(string(a), string(b))
 }

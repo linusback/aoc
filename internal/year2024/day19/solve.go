@@ -1,7 +1,6 @@
 package day19
 
 import (
-	"cmp"
 	"github.com/linusback/aoc/pkg/util"
 	"iter"
 	"slices"
@@ -100,13 +99,6 @@ func solveTowelsParallel() (solution1, solution2 string) {
 	return strconv.FormatUint(res1, 10), strconv.FormatUint(res2, 10)
 }
 
-func resetKnownPattern(knownPattern []int64) []int64 {
-	for kk := range knownPattern {
-		knownPattern[kk] = -1
-	}
-	return knownPattern
-}
-
 // canBeMadeNew is adapted from https://github.com/maneatingape/advent-of-code-rust/blob/main/src/year2024/day19.rs
 func canBeMadeNew(p pattern, knownPattern []int64) uint64 {
 	var i uint16
@@ -120,7 +112,7 @@ func canBeMadeNew(p pattern, knownPattern []int64) uint64 {
 		if knownPattern[start] > 0 {
 			i = 0
 			for end := start; end < size; end++ {
-				i = trie[i+perfectHash(p[end])]
+				i = trie[i+uint16(p[end])]
 				if i == 0 {
 					break
 				}
@@ -132,42 +124,8 @@ func canBeMadeNew(p pattern, knownPattern []int64) uint64 {
 	return uint64(knownPattern[size])
 }
 
-func canBeMade(p pattern, res uint64, knownPattern []int64) uint64 {
-	key := len(p)
-	switch key {
-	case 0:
-		return res + 1
-	}
-	var (
-		newWays  uint64
-		ways     uint64
-		knownWay int64
-	)
-	knownWay = knownPattern[key]
-	if knownWay > -1 {
-		return res + uint64(knownWay)
-	}
-
-	for lenT := range matches(p) {
-		key = len(p) - lenT
-		knownWay = knownPattern[key]
-		if knownWay > -1 {
-			newWays += uint64(knownWay)
-			continue
-		}
-		ways = canBeMade(p[lenT:], res, knownPattern)
-		newWays += ways
-		knownPattern[key] = int64(ways)
-	}
-	if newWays == 0 {
-		knownPattern[len(p)] = 0
-		return res
-	}
-
-	return res + newWays
-}
-
 func parsePatterns(row []byte, _ int) error {
+	hashBytes(row)
 	patterns = append(patterns, row)
 	return nil
 }
@@ -176,6 +134,7 @@ func parseTowels(row []byte, _ int) error {
 	var (
 		start, i int
 		b        byte
+		towel    pattern
 	)
 	for i, b = range row {
 		if util.AsciiSpace[b] == 1 {
@@ -183,18 +142,22 @@ func parseTowels(row []byte, _ int) error {
 			continue
 		}
 		if b == ',' {
-			towels = append(towels, row[start:i])
+			towel = row[start:i]
+			hashBytes(towel)
+			towels = append(towels, towel)
 			start = i + 1
 		}
 	}
 	if start < i {
-		towels = append(towels, row[start:])
+		towel = row[start:]
+		hashBytes(towel)
+		towels = append(towels, towel)
 	}
-	slices.SortFunc(towels, patternSortPerfectHash)
+	slices.SortFunc(towels, patternSortPreHash)
 	for _, t := range towels {
 		setTrieTowel(t)
 	}
-	//log.Println(towels)
+
 	//log.Println(trie)
 	//log.Printf("trie len %d, cap %d\n", len(trie), cap(trie))
 	//log.Println(math.MaxUint16)
@@ -202,20 +165,30 @@ func parseTowels(row []byte, _ int) error {
 	return nil
 }
 
-func patternSort(a, b pattern) int {
+func patternSortPerfectHash(a, b pattern) int {
+	var ha, hb uint16
+	for i := 0; i < len(a) && i < len(b); i++ {
+		ha, hb = perfectHash(a[i]), perfectHash(b[i])
+		if ha < hb {
+			return -1
+		}
+		if ha > hb {
+			return 1
+		}
+	}
 	if len(a) < len(b) {
 		return -1
 	}
 	if len(a) > len(b) {
 		return 1
 	}
-	return cmp.Compare(string(a), string(b))
+	return 0
 }
 
-func patternSortPerfectHash(a, b pattern) int {
-	var ha, hb uint16
+func patternSortPreHash(a, b pattern) int {
+	var ha, hb byte
 	for i := 0; i < len(a) && i < len(b); i++ {
-		ha, hb = perfectHash(a[i]), perfectHash(b[i])
+		ha, hb = a[i], b[i]
 		if ha < hb {
 			return -1
 		}
@@ -239,12 +212,22 @@ func perfectHash(b byte) uint16 {
 	return uint16((b ^ (b >> 4)) & 7)
 }
 
+func perfectHashByte(b byte) byte {
+	return (b ^ (b >> 4)) & 7
+}
+
+func hashBytes(bArr []byte) {
+	for i, b := range bArr {
+		bArr[i] = perfectHashByte(b)
+	}
+}
+
 func setTrieTowel(towel pattern) {
 	var i, j, tLen uint16
 	//log.Printf("setting towel %v\n", towel)
 	for _, b := range towel {
 
-		j = perfectHash(b)
+		j = uint16(b)
 		//log.Printf("hash: %c -> %d\n", b, j)
 		//log.Printf("%d + %d = %d, %d", i, j, i+j, len(trie))
 		if trie[i+j] == 0 {
