@@ -44,8 +44,6 @@ func ToString(t []pattern) string {
 }
 
 var (
-	towelsByChar [256][]pattern
-	towels       []pattern
 	patterns     []pattern
 	towelMap     [826][]pattern
 	oneStripeMap [26]uint64
@@ -281,8 +279,6 @@ func parseTowels(row []byte, _ int) error {
 		}
 		if b == ',' {
 			towel = row[start:i]
-			towels = append(towels, towel)
-			towelsByChar[row[start]] = append(towelsByChar[row[start]], towel)
 			addTowelMaps(towel)
 
 			start = i + 1
@@ -290,16 +286,7 @@ func parseTowels(row []byte, _ int) error {
 	}
 	if start < i {
 		towel = row[start:]
-		towels = append(towels, towel)
-		towelsByChar[row[start]] = append(towelsByChar[row[start]], towel)
 		addTowelMaps(towel)
-	}
-	slices.SortFunc(towels, patternSort)
-	for _, t := range towelsByChar {
-		if len(t) == 0 {
-			continue
-		}
-		slices.SortFunc(t, patternSort)
 	}
 	for _, t := range towelMap {
 		if len(t) == 0 {
