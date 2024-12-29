@@ -3,7 +3,6 @@ package day19
 import (
 	"github.com/linusback/aoc/pkg/util"
 	"iter"
-	"slices"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -20,8 +19,9 @@ func Solve() (solution1, solution2 string, err error) {
 
 var (
 	patterns []pattern
-	towels   = make([]pattern, 0, 450)
-	trie     = make([]uint16, 6, 5000)
+	//towels          = make([]pattern, 450)
+	trie        = make([]uint16, 4800)
+	tLen uint16 = 6
 )
 
 func solve(filename string) (solution1, solution2 string, err error) {
@@ -144,19 +144,20 @@ func parseTowels(row []byte, _ int) error {
 		if b == ',' {
 			towel = row[start:i]
 			hashBytes(towel)
-			towels = append(towels, towel)
+			setTrieTowel(towel)
 			start = i + 1
 		}
 	}
 	if start < i {
 		towel = row[start:]
 		hashBytes(towel)
-		towels = append(towels, towel)
+		setTrieTowel(towel)
 	}
-	slices.SortFunc(towels, patternSortPreHash)
-	for _, t := range towels {
-		setTrieTowel(t)
-	}
+
+	//slices.SortFunc(towels, patternSortPreHash)
+	//for _, t := range towels {
+	//	setTrieTowel(t)
+	//}
 
 	//log.Println(trie)
 	//log.Printf("trie len %d, cap %d\n", len(trie), cap(trie))
@@ -186,9 +187,9 @@ func patternSortPerfectHash(a, b pattern) int {
 }
 
 func patternSortPreHash(a, b pattern) int {
-	var ha, hb byte
+	//var ha, hb byte
 	for i := 0; i < len(a) && i < len(b); i++ {
-		ha, hb = a[i], b[i]
+		ha, hb := a[i], b[i]
 		if ha < hb {
 			return -1
 		}
@@ -223,7 +224,7 @@ func hashBytes(bArr []byte) {
 }
 
 func setTrieTowel(towel pattern) {
-	var i, j, tLen uint16
+	var i, j uint16
 	//log.Printf("setting towel %v\n", towel)
 	for _, b := range towel {
 
@@ -231,10 +232,10 @@ func setTrieTowel(towel pattern) {
 		//log.Printf("hash: %c -> %d\n", b, j)
 		//log.Printf("%d + %d = %d, %d", i, j, i+j, len(trie))
 		if trie[i+j] == 0 {
-			tLen = uint16(len(trie))
 			trie[i+j] = tLen
 			i = tLen
-			trie = append(trie, 0, 0, 0, 0, 0, 0)
+			tLen += 6
+			//append(trie, 0, 0, 0, 0, 0, 0)
 		} else {
 			i = trie[i+j]
 		}
