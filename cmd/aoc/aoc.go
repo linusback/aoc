@@ -30,10 +30,10 @@ func main() {
 			log.Printf("%v\n\n", err)
 			continue
 		}
-
+		since := time.Since(start)
 		log.Println("result 1: ", solution1)
 		log.Println("result 2: ", solution2)
-		log.Printf("Time elapsed: %v\n", time.Since(start))
+		log.Printf("Time elapsed: %v\n", since)
 		log.Printf("Sending Answers")
 
 		err = send(aoc.Part1, year, day, solution1)

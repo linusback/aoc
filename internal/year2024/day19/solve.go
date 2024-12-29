@@ -22,6 +22,7 @@ func Solve() (solution1, solution2 string, err error) {
 var (
 	patterns     []pattern
 	towelMap     [826][]pattern
+	towels       = make([]pattern, 0, 450)
 	oneStripeMap [26]uint64
 	trie         = make([]uint16, 0, 5000)
 	//knownPattern  = make(map[string]uint64, 19000)
@@ -88,16 +89,22 @@ func solveTowelsParallel() (solution1, solution2 string) {
 			//knownPattern := swiss.NewMap[string, uint64](2500)
 			knownPattern := make([]int64, 61)
 			var t pattern
+			var ways uint64
 			for k := atomic.AddUint32(&n, 1) - 1; k < pLen; k = atomic.AddUint32(&n, 1) - 1 {
 				t = patterns[k]
-				knownPattern = knownPattern[:len(t)+1]
-				for kk := range knownPattern {
-					knownPattern[kk] = -1
-				}
-				if ways := canBeMade(t, 0, knownPattern); ways > 0 {
+				knownPattern = resetKnownPattern(knownPattern)
+				if ways = canBeMade(t, 0, knownPattern); ways > 0 {
 					atomic.AddUint64(&res1, 1)
 					atomic.AddUint64(&res2, ways)
 				}
+				//knownPattern = resetKnownPattern(knownPattern)
+				//if oldWay = canBeMadeOld(t, 0, knownPattern); oldWay > 0 {
+				//	atomic.AddUint64(&oldRes1, 1)
+				//	atomic.AddUint64(&oldRes2, oldWay)
+				//}
+				//if oldWay == 0 && ways > 0 {
+				//	log.Printf("difference in pattern %s\n\told %d, new %d\n\n_____________", t, oldWay, ways)
+				//}
 			}
 			//fmt.Println("len:", knownPattern.Count())
 			//fmt.Println("len:", len(knownPattern))
@@ -105,6 +112,10 @@ func solveTowelsParallel() (solution1, solution2 string) {
 		}()
 	}
 	wg.Wait()
+	//log.Println("len patterns", len(patterns))
+	//log.Println("done", done)
+	//log.Println("old res 1", oldRes1)
+	//log.Println("old res 2", oldRes2)
 	//for _, t := range patterns {
 	//	if ways := canBeMade(t, 0); ways > 0 {
 	//		res1++
@@ -114,7 +125,49 @@ func solveTowelsParallel() (solution1, solution2 string) {
 	return strconv.FormatUint(res1, 10), strconv.FormatUint(res2, 10)
 }
 
+func resetKnownPattern(knownPattern []int64) []int64 {
+	for kk := range knownPattern {
+		knownPattern[kk] = -1
+	}
+	return knownPattern
+}
+
 func canBeMade(p pattern, res uint64, knownPattern []int64) uint64 {
+	key := len(p)
+	switch key {
+	case 0:
+		return res + 1
+	}
+	var (
+		newWays  uint64
+		ways     uint64
+		knownWay int64
+	)
+	knownWay = knownPattern[key]
+	if knownWay > -1 {
+		return res + uint64(knownWay)
+	}
+
+	for lenT := range matches(p) {
+		key = len(p) - lenT
+		knownWay = knownPattern[key]
+		if knownWay > -1 {
+			newWays += uint64(knownWay)
+			continue
+		}
+		ways = canBeMade(p[lenT:], res, knownPattern)
+		newWays += ways
+		knownPattern[key] = int64(ways)
+	}
+	if newWays == 0 {
+		knownPattern[len(p)] = 0
+		return res
+	}
+
+	return res + newWays
+}
+
+func canBeMadeOld(p pattern, res uint64, knownPattern []int64) uint64 {
 	key := len(p)
 	switch key {
 	case 0:
@@ -133,7 +186,7 @@ func canBeMade(p pattern, res uint64, knownPattern []int64) uint64 {
 	}
 
 	if oneStripeMap[p[0]-'a'] == 1 {
-		ways = canBeMade(p[1:], res, knownPattern)
+		ways = canBeMadeOld(p[1:], res, knownPattern)
 		newWays += ways
 		knownPattern[key-1] = int64(ways)
 	}
@@ -157,7 +210,7 @@ func canBeMade(p pattern, res uint64, knownPattern []int64) uint64 {
 			newWays += uint64(knownWay)
 			continue
 		}
-		ways = canBeMade(p[len(t):], res, knownPattern)
+		ways = canBeMadeOld(p[len(t):], res, knownPattern)
 		newWays += ways
 		knownPattern[key] = int64(ways)
 	}
@@ -175,9 +228,24 @@ func notMatch(pattern, t pattern) bool {
 
 func parsePatterns(row []byte, nr int) error {
 	patterns = append(patterns, row)
-	//if nr > 2 {
-	//	return nil
-	//}
+	if string(row) == "bwbbbuwrgggubwwrbgugguuurbbwwrbwwuwwugwuuwu" || string(row) == "wgbuwwwrubbbrruubrbuwwbgubrgwuuwgbbbrrbrrbwrbuwwugwu" {
+		//log.Printf("pattern %s\n", row)
+		//for i := 0; i < len(row); i++ {
+		//	m := slices.Collect(matches(row[i:]))
+		//	tm := slices.Collect(matchesGet(row[i:]))
+		//	log.Printf("%s -> %+v (%v)\n", row[i:], m, ToString(tm))
+		//	if len(m) != len(tm) {
+		//		log.Println("missmatch in length")
+		//	}
+		//	for _, t := range tm {
+		//		if !slices.ContainsFunc(towels, func(p pattern) bool {
+		//			return bytes.Equal(p, t)
+		//		}) {
+		//			log.Printf("towel %v does not exist\n", t)
+		//		}
+		//	}
+		//}
+	}
 	//log.Printf("pattern %s\n", row)
 	//for i := 0; i < len(row); i++ {
 	//	log.Printf("%s -> %+v (%v)\n", row[i:], slices.Collect(matches(row[i:])), ToString(slices.Collect(matchesGet(row[i:]))))
@@ -190,7 +258,7 @@ func parseTowels(row []byte, _ int) error {
 		start, i int
 		b        byte
 		towel    pattern
-		towels   = make([]pattern, 0, 450)
+		//towels   = make([]pattern, 0, 450)
 	)
 	for i, b = range row {
 		if util.AsciiSpace[b] == 1 {
@@ -332,6 +400,9 @@ func matchesGet(p pattern) iter.Seq[pattern] {
 			//log.Printf("i: %d, hash: %d\n", trieI, perfectHash(p[i]))
 			//log.Println("current:", trie[trieI:trieI+6])
 			trieI = trie[trieI+perfectHash(p[i])]
+			if trieI == 0 {
+				break
+			}
 			if trie[trieI+3] == 1 {
 				if !yield(towel) {
 					break
@@ -341,17 +412,20 @@ func matchesGet(p pattern) iter.Seq[pattern] {
 	}
 }
 
-func matches(p pattern) iter.Seq[uint64] {
+func matches(p pattern) iter.Seq[int] {
 	tLen := min(len(p), 8)
 	var (
 		trieI uint16
-		res   uint64
+		res   int
 	)
 
-	return func(yield func(uint64) bool) {
+	return func(yield func(int) bool) {
 		for i := 0; i < tLen; i++ {
 			res++
 			trieI = trie[trieI+perfectHash(p[i])]
+			if trieI == 0 {
+				break
+			}
 			if trie[trieI+3] == 1 {
 				if !yield(res) {
 					break

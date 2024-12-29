@@ -13,7 +13,7 @@ const patternSize = 20644
 
 var (
 	matchTests []matchTest
-	towels     []pattern
+	//towels     []pattern
 )
 
 type matchTest struct {
