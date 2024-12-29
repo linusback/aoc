@@ -47,7 +47,7 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	//}
 
 	//solution1, solution2 = solveTowels()
-	solution1, solution2 = solveTowelsParallel()
+	solution1, solution2 = solveTowels()
 
 	return
 }
@@ -57,11 +57,7 @@ func solveTowels() (solution1, solution2 string) {
 	//knownPattern := make(map[string]uint64, 18500)
 	knownPattern := make([]int64, 61)
 	for _, t := range patterns {
-		knownPattern = knownPattern[:len(t)+1]
-		for k := range knownPattern {
-			knownPattern[k] = -1
-		}
-		if ways := canBeMade(t, 0, knownPattern); ways > 0 {
+		if ways := canBeMadeNew(t, knownPattern); ways > 0 {
 			res1++
 			res2 += ways
 		}
@@ -87,8 +83,12 @@ func solveTowelsParallel() (solution1, solution2 string) {
 			var ways uint64
 			for k := atomic.AddUint32(&n, 1) - 1; k < pLen; k = atomic.AddUint32(&n, 1) - 1 {
 				t = patterns[k]
-				knownPattern = resetKnownPattern(knownPattern)
-				if ways = canBeMade(t, 0, knownPattern); ways > 0 {
+				//knownPattern = resetKnownPattern(knownPattern)
+				//if ways = canBeMade(t, 0, knownPattern); ways > 0 {
+				//	atomic.AddUint64(&res1, 1)
+				//	atomic.AddUint64(&res2, ways)
+				//}
+				if ways = canBeMadeNew(t, knownPattern); ways > 0 {
 					atomic.AddUint64(&res1, 1)
 					atomic.AddUint64(&res2, ways)
 				}
@@ -105,6 +105,31 @@ func resetKnownPattern(knownPattern []int64) []int64 {
 		knownPattern[kk] = -1
 	}
 	return knownPattern
+}
+
+// canBeMadeNew is adapted from https://github.com/maneatingape/advent-of-code-rust/blob/main/src/year2024/day19.rs
+func canBeMadeNew(p pattern, knownPattern []int64) uint64 {
+	var i uint16
+
+	size := len(p)
+	knownPattern = knownPattern[:size+1]
+	clear(knownPattern)
+
+	knownPattern[0] = 1
+	for start := 0; start < size; start++ {
+		if knownPattern[start] > 0 {
+			i = 0
+			for end := start; end < size; end++ {
+				i = trie[i+perfectHash(p[end])]
+				if i == 0 {
+					break
+				}
+				knownPattern[end+1] += int64(trie[i+3]) * knownPattern[start]
+			}
+		}
+	}
+	//log.Printf("pattern %v\n\t%v\n", p, knownPattern)
+	return uint64(knownPattern[size])
 }
 
 func canBeMade(p pattern, res uint64, knownPattern []int64) uint64 {
@@ -208,8 +233,8 @@ func patternSortPerfectHash(a, b pattern) int {
 }
 
 // perfectHash is adapted from https://github.com/maneatingape/advent-of-code-rust/blob/main/src/year2024/day19.rs
-// / Hashes the five possible color values white (w), blue (u), black (b), red (r), or green (g)
-// / to 0, 2, 4, 5 and 1 respectively. This compresses the range to fit into an array of 6 elements.
+// Hashes the five possible color values white (w), blue (u), black (b), red (r), or green (g)
+// to 0, 2, 4, 5 and 1 respectively. This compresses the range to fit into an array of 6 elements.
 func perfectHash(b byte) uint16 {
 	return uint16((b ^ (b >> 4)) & 7)
 }

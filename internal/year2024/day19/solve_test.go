@@ -25,14 +25,15 @@ type matchTest struct {
 type hashFunc func(byte) uint16
 
 func Benchmark_solveTowels(b *testing.B) {
-	err := parseInput()
-	if err != nil {
-		b.Error(err)
-	}
+	//err := parseInput()
+	//if err != nil {
+	//	b.Error(err)
+	//}
 	//b.ReportAllocs()
-	b.ResetTimer()
+	//b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = solveTowels()
+		//_, _ = solveTowels()
+		_, _, _ = solve(testFilename)
 	}
 }
 
