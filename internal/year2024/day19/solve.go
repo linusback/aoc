@@ -118,19 +118,25 @@ func solveTowels() (solution1, solution2 string) {
 
 func solveTowelsParallel() (solution1, solution2 string) {
 	const parallel = 16
-	var res1, res2 uint64
-	ch := consume(parallel)
+	var (
+		res1, res2 uint64
+		n          uint32
+	)
+	//ch := consume(parallel)
 	wg := new(sync.WaitGroup)
 	wg.Add(parallel)
+	pLen := uint32(len(patterns))
 	for i := 0; i < parallel; i++ {
 		go func() {
 			defer wg.Done()
 			//knownPattern := swiss.NewMap[string, uint64](2500)
 			knownPattern := make([]int64, 61)
-			for t := range ch {
+			var t pattern
+			for k := atomic.AddUint32(&n, 1) - 1; k < pLen; k = atomic.AddUint32(&n, 1) - 1 {
+				t = patterns[k]
 				knownPattern = knownPattern[:len(t)+1]
-				for k := range knownPattern {
-					knownPattern[k] = -1
+				for kk := range knownPattern {
+					knownPattern[kk] = -1
 				}
 				if ways := canBeMade(t, 0, knownPattern); ways > 0 {
 					atomic.AddUint64(&res1, 1)
