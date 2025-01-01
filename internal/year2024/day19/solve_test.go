@@ -52,7 +52,6 @@ func Benchmark_Input1(b *testing.B) {
 func Benchmark_Input2(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		patterns = patterns[:0]
 		towelBuff = towelBuff[:0]
 		patternBuff = patternBuff[:0]
 		transform = transformTowels

@@ -18,12 +18,12 @@ func Solve() (solution1, solution2 string, err error) {
 }
 
 var (
-	patterns = make([]pattern, 0, 400)
-	//towels          = make([]pattern, 450)
-	trie = make([]uint16, 4800)
 	//trie2 [6][]uint16
-	tLen      uint16 = 6
-	transform util.TransformRowFunc
+	patterns   = make([]pattern, 0, 400)
+	trie       = make([]uint16, 4800)
+	res1, res2 uint64
+	tLen       uint16 = 6
+	transform  util.TransformRowFunc
 )
 
 func solve(filename string) (solution1, solution2 string, err error) {
@@ -31,7 +31,6 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	if err != nil {
 		return
 	}
-
 	//transform = transformTowels
 	//err = util.DoEachByteFile(filename, TransformTowel)
 	//if err != nil {
@@ -58,15 +57,15 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	//}
 
 	//solution1, solution2 = solveTowels()
-	solution1, solution2 = solveTowels()
+	//solution1, solution2 = solveTowels()
 
-	return
+	return strconv.FormatUint(res1, 10), strconv.FormatUint(res2, 10), nil
 }
 
 func solveTowels() (solution1, solution2 string) {
-	var res1, res2 uint64
+	//var res1, res2 uint64
 	//knownPattern := make(map[string]uint64, 18500)
-	knownPattern := make([]int64, 61)
+	//knownPattern := make([]int64, 61)
 	for _, t := range patterns {
 		if ways := canBeMadeNew(t, knownPattern); ways > 0 {
 			res1++
@@ -80,8 +79,8 @@ func solveTowels() (solution1, solution2 string) {
 func solveTowelsParallel() (solution1, solution2 string) {
 	const parallel = 16
 	var (
-		res1, res2 uint64
-		n          uint32
+		//res1, res2 uint64
+		n uint32
 	)
 	wg := new(sync.WaitGroup)
 	wg.Add(parallel)
@@ -112,33 +111,39 @@ func solveTowelsParallel() (solution1, solution2 string) {
 }
 
 // canBeMadeNew is adapted from https://github.com/maneatingape/advent-of-code-rust/blob/main/src/year2024/day19.rs
-func canBeMadeNew(p pattern, knownPattern []int64) uint64 {
+func canBeMadeNew(p pattern, known []int64) uint64 {
 	var i uint16
 
 	size := len(p)
-	knownPattern = knownPattern[:size+1]
-	clear(knownPattern)
+	known = known[:size+1]
+	clear(known)
 
-	knownPattern[0] = 1
+	known[0] = 1
 	for start := 0; start < size; start++ {
-		if knownPattern[start] > 0 {
+		if known[start] > 0 {
 			i = 0
 			for end := start; end < size; end++ {
 				i = trie[i+uint16(p[end])]
 				if i == 0 {
 					break
 				}
-				knownPattern[end+1] += int64(trie[i+3]) * knownPattern[start]
+				known[end+1] += int64(trie[i+3]) * known[start]
 			}
 		}
 	}
-	//log.Printf("pattern %v\n\t%v\n", p, knownPattern)
-	return uint64(knownPattern[size])
+	//log.Printf("pattern %v\n\t%v\n", p, known)
+	return uint64(known[size])
 }
+
+var knownPattern = make([]int64, 61)
 
 func parsePatterns(row []byte, _ int) error {
 	hashBytes(row)
-	patterns = append(patterns, row)
+	ways := canBeMadeNew(row, knownPattern)
+	if ways > 0 {
+		res1++
+	}
+	res2 += ways
 	return nil
 }
 
@@ -201,6 +206,7 @@ func transformEmptyRow(_ byte) {
 }
 
 var patternBuff = make(pattern, 0, 61)
+var total int
 
 func transformPatterns(b byte) {
 	switch b {
@@ -208,10 +214,10 @@ func transformPatterns(b byte) {
 		if len(patternBuff) == 0 {
 			return
 		}
-		p := make(pattern, len(patternBuff))
-		copy(p, patternBuff)
+		//p := make(pattern, len(patternBuff))
+		//copy(p, patternBuff)
 		patternBuff = patternBuff[:0]
-		patterns = append(patterns, p)
+		//patterns = append(patterns, p)
 	default:
 		patternBuff = append(patternBuff, perfectHashByte(b))
 	}
