@@ -13,13 +13,15 @@ import (
 
 var (
 	ErrUnsupportedPositionType errorsx.SimpleError = "type is not supported"
+	ErrInsufficientSpace       errorsx.SimpleError = "buffer is to small to read a row, try increasing it"
 )
 
 type (
-	RowFunc       func(row []byte, nr int) error
-	ExecFunc      func(*bufio.Reader, RowFunc, ...RowFunc) error
-	MultiRowFunc  func(row [][]byte, nr int) error
-	MultiExecFunc func(*bufio.Reader, int, MultiRowFunc, ...MultiRowFunc) error
+	RowFunc          func(row []byte, nr int) error
+	TransformRowFunc func(b byte)
+	ExecFunc         func(*bufio.Reader, RowFunc, ...RowFunc) error
+	MultiRowFunc     func(row [][]byte, nr int) error
+	MultiExecFunc    func(*bufio.Reader, int, MultiRowFunc, ...MultiRowFunc) error
 )
 
 type UnsignedPos interface {
@@ -250,4 +252,32 @@ func DoEachRowBuffN(r *bufio.Reader, n int, f MultiRowFunc, extra ...MultiRowFun
 	}
 
 	return
+}
+
+var buff [4096]byte
+
+func DoEachByteFile(filename string, tFunc TransformRowFunc) (err error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+
+	var n int
+	for {
+		n, err = f.Read(buff[:])
+		if err == io.EOF {
+			err = nil
+			break
+		}
+		if err != nil {
+			return errors.Join(err, f.Close())
+		}
+		for i := range n {
+			tFunc(buff[i])
+		}
+	}
+	for i := range n {
+		tFunc(buff[i])
+	}
+	return f.Close()
 }

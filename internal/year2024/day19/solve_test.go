@@ -15,6 +15,7 @@ var (
 	matchTests   []matchTest
 	towelMap     [826][]pattern
 	oneStripeMap [26]uint64
+	towels       []pattern
 )
 
 type matchTest struct {
@@ -34,6 +35,31 @@ func Benchmark_solveTowels(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		//_, _ = solveTowels()
 		_, _, _ = solve(testFilename)
+	}
+}
+
+func Benchmark_Input1(b *testing.B) {
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		patterns = patterns[:0]
+		err := util.DoEachRowFile(testFilename, parseTowels, parsePatterns)
+		if err != nil {
+			return
+		}
+	}
+}
+
+func Benchmark_Input2(b *testing.B) {
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		patterns = patterns[:0]
+		towelBuff = towelBuff[:0]
+		patternBuff = patternBuff[:0]
+		transform = transformTowels
+		err := util.DoEachByteFile(testFilename, TransformTowel)
+		if err != nil {
+			return
+		}
 	}
 }
 

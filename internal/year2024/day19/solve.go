@@ -18,10 +18,12 @@ func Solve() (solution1, solution2 string, err error) {
 }
 
 var (
-	patterns []pattern
+	patterns = make([]pattern, 0, 400)
 	//towels          = make([]pattern, 450)
-	trie        = make([]uint16, 4800)
-	tLen uint16 = 6
+	trie = make([]uint16, 4800)
+	//trie2 [6][]uint16
+	tLen      uint16 = 6
+	transform util.TransformRowFunc
 )
 
 func solve(filename string) (solution1, solution2 string, err error) {
@@ -29,6 +31,16 @@ func solve(filename string) (solution1, solution2 string, err error) {
 	if err != nil {
 		return
 	}
+
+	//transform = transformTowels
+	//err = util.DoEachByteFile(filename, TransformTowel)
+	//if err != nil {
+	//	return
+	//}
+
+	//log.Println("trie", trie)
+	//log.Println("patterns len", len(patterns))
+
 	//log.Println("max len", maxlen)
 	//log.Println("________________________")
 	//for i, t := range towelMap {
@@ -166,6 +178,82 @@ func parseTowels(row []byte, _ int) error {
 	return nil
 }
 
+func TransformTowel(b byte) {
+	transform(b)
+}
+
+var towelBuff = make(pattern, 0, 8)
+
+func transformTowels(b byte) {
+	switch b {
+	case 'b', 'g', 'r', 'u', 'w':
+		towelBuff = append(towelBuff, perfectHashByte(b))
+	case ',':
+		setTrieTowel(towelBuff)
+		towelBuff = towelBuff[:0]
+	case '\n':
+		setTrieTowel(towelBuff)
+		transform = transformEmptyRow
+	}
+}
+func transformEmptyRow(_ byte) {
+	transform = transformPatterns
+}
+
+var patternBuff = make(pattern, 0, 61)
+
+func transformPatterns(b byte) {
+	switch b {
+	case '\n':
+		if len(patternBuff) == 0 {
+			return
+		}
+		p := make(pattern, len(patternBuff))
+		copy(p, patternBuff)
+		patternBuff = patternBuff[:0]
+		patterns = append(patterns, p)
+	default:
+		patternBuff = append(patternBuff, perfectHashByte(b))
+	}
+}
+
+// perfectHash is adapted from https://github.com/maneatingape/advent-of-code-rust/blob/main/src/year2024/day19.rs
+// Hashes the five possible color values white (w), blue (u), black (b), red (r), or green (g)
+// to 0, 2, 4, 5 and 1 respectively. This compresses the range to fit into an array of 6 elements.
+func perfectHash(b byte) uint16 {
+	return uint16((b ^ (b >> 4)) & 7)
+}
+
+func perfectHashByte(b byte) byte {
+	return (b ^ (b >> 4)) & 7
+}
+
+func hashBytes(bArr []byte) {
+	for i, b := range bArr {
+		bArr[i] = perfectHashByte(b)
+	}
+}
+
+func setTrieTowel(towel pattern) {
+	var i, j uint16
+	//log.Printf("setting towel %v\n", towel)
+	for _, b := range towel {
+
+		j = uint16(b)
+		//log.Printf("hash: %c -> %d\n", b, j)
+		//log.Printf("%d + %d = %d, %d", i, j, i+j, len(trie))
+		if trie[i+j] == 0 {
+			trie[i+j] = tLen
+			i = tLen
+			tLen += 6
+			//append(trie, 0, 0, 0, 0, 0, 0)
+		} else {
+			i = trie[i+j]
+		}
+	}
+	trie[i+3] = 1
+}
+
 func patternSortPerfectHash(a, b pattern) int {
 	var ha, hb uint16
 	for i := 0; i < len(a) && i < len(b); i++ {
@@ -204,43 +292,6 @@ func patternSortPreHash(a, b pattern) int {
 		return 1
 	}
 	return 0
-}
-
-// perfectHash is adapted from https://github.com/maneatingape/advent-of-code-rust/blob/main/src/year2024/day19.rs
-// Hashes the five possible color values white (w), blue (u), black (b), red (r), or green (g)
-// to 0, 2, 4, 5 and 1 respectively. This compresses the range to fit into an array of 6 elements.
-func perfectHash(b byte) uint16 {
-	return uint16((b ^ (b >> 4)) & 7)
-}
-
-func perfectHashByte(b byte) byte {
-	return (b ^ (b >> 4)) & 7
-}
-
-func hashBytes(bArr []byte) {
-	for i, b := range bArr {
-		bArr[i] = perfectHashByte(b)
-	}
-}
-
-func setTrieTowel(towel pattern) {
-	var i, j uint16
-	//log.Printf("setting towel %v\n", towel)
-	for _, b := range towel {
-
-		j = uint16(b)
-		//log.Printf("hash: %c -> %d\n", b, j)
-		//log.Printf("%d + %d = %d, %d", i, j, i+j, len(trie))
-		if trie[i+j] == 0 {
-			trie[i+j] = tLen
-			i = tLen
-			tLen += 6
-			//append(trie, 0, 0, 0, 0, 0, 0)
-		} else {
-			i = trie[i+j]
-		}
-	}
-	trie[i+3] = 1
 }
 
 func matches(p pattern) iter.Seq[int] {
